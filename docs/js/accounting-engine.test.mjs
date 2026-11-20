@@ -152,9 +152,29 @@ test('export-utils JSON v2 backup round-trip, CSV BOM, and XSS escaping', () => 
   assert.ok(csv.startsWith('\uFEFF'));
   assert.ok(csv.includes('Jualan Tunai'));
 
-  const printHtml = buildPrintableHtml(ws, stats, 'ms');
+  const printHtml = buildPrintableHtml(ws, stats, 'ms', { ownerIdNumber: '850214-02-5431' });
   assert.ok(printHtml.includes('Kedai &lt;Test&gt; &amp; Co'));
   assert.ok(!printHtml.includes('Kedai <Test>'));
+  assert.ok(printHtml.includes('class="print-page print-page-bs"'));
+  assert.ok(printHtml.includes('<th>Butiran</th>'));
+  assert.ok(printHtml.includes('<th class="num">Baki</th>'));
+  assert.ok(printHtml.includes('Akaun: Bank'));
+  assert.ok(!printHtml.includes('RINGKASAN UNTUNG RUGI'));
+  assert.ok(!printHtml.includes('Tambah: Pendapatan lain'));
+  assert.ok(!printHtml.includes('Tolak: Perbelanjaan operasi'));
+  assert.ok(!printHtml.includes('SEMAKAN IMBANGAN AKAUN'));
+  assert.ok(printHtml.includes('Disediakan dan disahkan oleh pemilik:'));
+  assert.ok(printHtml.includes('Ali'));
+  assert.ok(printHtml.includes('No. KP / ID: 850214-02-5431'));
+  assert.ok(printHtml.includes('Tandatangan pemilik'));
+
+  const bankEntries = stats.ledgers['Bank'] || [];
+  assert.equal(bankEntries.length, 5);
+  approx(bankEntries[0].balance, 5000.0);
+  approx(bankEntries[1].balance, 3200.0);
+  approx(bankEntries[2].balance, 6800.0);
+  approx(bankEntries[3].balance, 5600.0);
+  approx(bankEntries[4].balance, 5300.0);
 });
 
 test('license-gate enforces key match, expiry, device slots, and Web device registration', () => {

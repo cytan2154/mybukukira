@@ -330,7 +330,8 @@ data class LedgerEntry(
   val date: String,
   val description: String,
   val debit: Double,
-  val credit: Double
+  val credit: Double,
+  val balance: Double = 0.0
 )
 
 enum class StatementType {

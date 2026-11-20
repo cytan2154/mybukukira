@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -19,21 +21,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudUpload
-import androidx.compose.material.icons.filled.RemoveCircle
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,10 +46,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.localization.BukuKiraStrings
 import com.example.model.AccountingCatalog
 import com.example.model.BookkeepingTransaction
@@ -55,10 +60,16 @@ import com.example.model.FinancialStats
 import com.example.model.LanguageCode
 import com.example.model.TeamRole
 import com.example.model.TransactionType
+import com.example.ui.theme.CoralContainer
 import com.example.ui.theme.CoralError
 import com.example.ui.theme.EmeraldDark
 import com.example.ui.theme.EmeraldPrimary
+import com.example.ui.theme.IndigoAccent
+import com.example.ui.theme.IndigoContainer
 import com.example.ui.theme.TabularAmountStyle
+import com.example.ui.theme.TealSoftBg
+import com.example.ui.theme.TealSoftBorder
+import com.example.ui.theme.TealTile
 
 @Composable
 fun HomeScreen(
@@ -80,6 +91,7 @@ fun HomeScreen(
   val totalIn = yearTxs.filter { it.type == TransactionType.IN }.sumOf { it.amount }
   val totalOut = yearTxs.filter { it.type == TransactionType.OUT }.sumOf { it.amount }
   val recent = yearTxs.take(5)
+  val netProfit = stats?.netProfit ?: 0.0
 
   LazyColumn(
     modifier = Modifier.fillMaxSize(),
@@ -113,7 +125,7 @@ fun HomeScreen(
       Box(
         modifier = Modifier
           .fillMaxWidth()
-          .clip(RoundedCornerShape(24.dp))
+          .clip(RoundedCornerShape(22.dp))
           .background(
             Brush.linearGradient(listOf(EmeraldDark, EmeraldPrimary))
           )
@@ -128,7 +140,7 @@ fun HomeScreen(
             Text(
               text = strings.cashAndBank,
               style = MaterialTheme.typography.labelLarge,
-              color = Color.White.copy(alpha = 0.85f)
+              color = Color.White.copy(alpha = 0.88f)
             )
             Surface(
               color = Color.White.copy(alpha = 0.16f),
@@ -156,7 +168,7 @@ fun HomeScreen(
 
           Text(
             text = BukuKiraStrings.formatCurrency(workspace.currency, stats?.totalMoneyNow ?: 0.0),
-            style = TabularAmountStyle.merge(MaterialTheme.typography.displaySmall),
+            style = TabularAmountStyle.merge(MaterialTheme.typography.displaySmall).copy(fontWeight = FontWeight.ExtraBold),
             color = Color.White
           )
 
@@ -165,31 +177,31 @@ fun HomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
           ) {
             Surface(
-              color = Color.White.copy(alpha = 0.14f),
+              color = Color.White.copy(alpha = 0.15f),
               shape = RoundedCornerShape(14.dp),
               modifier = Modifier.weight(1f)
             ) {
               Column(modifier = Modifier.padding(12.dp)) {
-                Text(strings.cashLabel, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f))
+                Text(strings.cashLabel, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.82f))
                 Spacer(Modifier.height(2.dp))
                 Text(
                   BukuKiraStrings.formatCurrency(workspace.currency, stats?.cashBalance ?: 0.0),
-                  style = TabularAmountStyle.merge(MaterialTheme.typography.titleMedium),
+                  style = TabularAmountStyle.merge(MaterialTheme.typography.titleMedium).copy(fontWeight = FontWeight.Bold),
                   color = Color.White
                 )
               }
             }
             Surface(
-              color = Color.White.copy(alpha = 0.14f),
+              color = Color.White.copy(alpha = 0.15f),
               shape = RoundedCornerShape(14.dp),
               modifier = Modifier.weight(1f)
             ) {
               Column(modifier = Modifier.padding(12.dp)) {
-                Text(strings.bankLabel, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f))
+                Text(strings.bankLabel, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.82f))
                 Spacer(Modifier.height(2.dp))
                 Text(
                   BukuKiraStrings.formatCurrency(workspace.currency, stats?.bankBalance ?: 0.0),
-                  style = TabularAmountStyle.merge(MaterialTheme.typography.titleMedium),
+                  style = TabularAmountStyle.merge(MaterialTheme.typography.titleMedium).copy(fontWeight = FontWeight.Bold),
                   color = Color.White
                 )
               }
@@ -199,102 +211,84 @@ fun HomeScreen(
       }
     }
 
-    // Primary Entry Buttons
+    // Big Colorful Action Boxes (Money In / Money Out)
     item {
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
       ) {
-        Button(
-          onClick = onOpenMoneyIn,
+        HomeActionBox(
+          modifier = Modifier.weight(1f).testTag("record_in_button"),
+          containerColor = EmeraldPrimary,
+          icon = Icons.Rounded.Add,
+          title = strings.addMoneyIn,
+          subtitle = strings.moneyInSub,
           enabled = isLicenceOperational,
-          modifier = Modifier
-            .weight(1f)
-            .height(54.dp)
-            .testTag("record_in_button"),
-          colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary)
-        ) {
-          Icon(Icons.Default.AddCircle, contentDescription = strings.addMoneyIn)
-          Spacer(Modifier.width(8.dp))
-          Text(strings.addMoneyIn, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Button(
-          onClick = onOpenMoneyOut,
+          onClick = onOpenMoneyIn
+        )
+        HomeActionBox(
+          modifier = Modifier.weight(1f).testTag("record_out_button"),
+          containerColor = CoralError,
+          icon = Icons.Rounded.Remove,
+          title = strings.addMoneyOut,
+          subtitle = strings.moneyOutSub,
           enabled = isLicenceOperational,
-          modifier = Modifier
-            .weight(1f)
-            .height(54.dp)
-            .testTag("record_out_button"),
-          colors = ButtonDefaults.buttonColors(containerColor = CoralError)
-        ) {
-          Icon(Icons.Default.RemoveCircle, contentDescription = strings.addMoneyOut)
-          Spacer(Modifier.width(8.dp))
-          Text(strings.addMoneyOut, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+          onClick = onOpenMoneyOut
+        )
       }
     }
 
-    // Cashflow & Profit Cards
+    // Colorful Cashflow Stat Boxes
     item {
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
       ) {
-        SummaryStatCard(
+        ColorfulStatBox(
           modifier = Modifier.weight(1f),
           title = strings.moneyIn,
           amountText = BukuKiraStrings.formatCurrency(workspace.currency, totalIn),
           accent = EmeraldPrimary,
-          icon = Icons.Default.ArrowDownward
+          bgColor = TealSoftBg,
+          borderColor = TealSoftBorder,
+          icon = Icons.Rounded.ArrowDownward
         )
-        SummaryStatCard(
+        ColorfulStatBox(
           modifier = Modifier.weight(1f),
           title = strings.moneyOut,
           amountText = BukuKiraStrings.formatCurrency(workspace.currency, totalOut),
           accent = CoralError,
-          icon = Icons.Default.ArrowUpward
+          bgColor = CoralContainer.copy(alpha = 0.42f),
+          borderColor = CoralError.copy(alpha = 0.35f),
+          icon = Icons.Rounded.ArrowUpward
         )
       }
     }
 
+    // Colorful Net Profit & Trade Receivables Boxes
     item {
-      val netProfit = stats?.netProfit ?: 0.0
-      Card(
+      Row(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
       ) {
-        Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-            Box(
-              modifier = Modifier
-                .size(42.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-              contentAlignment = Alignment.Center
-            ) {
-              Icon(Icons.Default.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            }
-            Spacer(Modifier.width(12.dp))
-            Column {
-              Text(
-                "${strings.netProfitYear} $selectedYear",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-              )
-              Text(
-                BukuKiraStrings.formatCurrency(workspace.currency, netProfit),
-                style = TabularAmountStyle.merge(MaterialTheme.typography.headlineSmall),
-                color = if (netProfit >= 0) EmeraldPrimary else CoralError
-              )
-            }
-          }
-        }
+        ColorfulStatBox(
+          modifier = Modifier.weight(1f),
+          title = "${strings.netProfitYear} $selectedYear",
+          amountText = BukuKiraStrings.formatCurrency(workspace.currency, netProfit),
+          accent = if (netProfit >= 0) IndigoAccent else CoralError,
+          bgColor = if (netProfit >= 0) IndigoContainer.copy(alpha = 0.55f) else CoralContainer.copy(alpha = 0.42f),
+          borderColor = if (netProfit >= 0) IndigoAccent.copy(alpha = 0.35f) else CoralError.copy(alpha = 0.35f),
+          icon = Icons.Rounded.TrendingUp
+        )
+        ColorfulStatBox(
+          modifier = Modifier.weight(1f),
+          title = strings.tradeDebtorsLabel,
+          amountText = BukuKiraStrings.formatCurrency(workspace.currency, stats?.tradeDebtors ?: 0.0),
+          accent = TealTile,
+          bgColor = TealSoftBg,
+          borderColor = TealSoftBorder,
+          icon = Icons.Rounded.AccountBalanceWallet
+        )
       }
     }
 
@@ -305,7 +299,7 @@ fun HomeScreen(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        Text(strings.recentRecords, style = MaterialTheme.typography.titleMedium)
+        Text(strings.recentRecords, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         TextButton(onClick = onViewAllRecords, modifier = Modifier.testTag("home_view_all_button")) {
           Text(strings.viewAll)
           Spacer(Modifier.width(4.dp))
@@ -323,15 +317,22 @@ fun HomeScreen(
           Column(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
           ) {
             Text(strings.noRecordsYet, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (currentUserRole == TeamRole.OWNER && isLicenceOperational) {
-              OutlinedButton(
+              Button(
                 onClick = onLoadSampleData,
-                modifier = Modifier.testTag("load_sample_data_button")
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = IndigoAccent),
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .height(50.dp)
+                  .testTag("load_sample_data_button")
               ) {
-                Text("Muatkan Data Contoh 2026")
+                Icon(Icons.Rounded.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Muatkan Data Contoh 2026", fontWeight = FontWeight.Bold)
               }
             }
           }
@@ -352,26 +353,107 @@ fun HomeScreen(
 }
 
 @Composable
-private fun SummaryStatCard(
+private fun HomeActionBox(
+  modifier: Modifier,
+  containerColor: Color,
+  icon: ImageVector,
+  title: String,
+  subtitle: String,
+  enabled: Boolean,
+  onClick: () -> Unit
+) {
+  Surface(
+    onClick = onClick,
+    enabled = enabled,
+    shape = RoundedCornerShape(18.dp),
+    color = if (enabled) containerColor else containerColor.copy(alpha = 0.45f),
+    shadowElevation = 2.dp,
+    modifier = modifier.heightIn(min = 96.dp)
+  ) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(14.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      Surface(
+        shape = CircleShape,
+        color = Color.White.copy(alpha = 0.22f),
+        modifier = Modifier.size(34.dp)
+      ) {
+        Box(contentAlignment = Alignment.Center) {
+          Icon(
+            imageVector = icon,
+            contentDescription = title,
+            tint = Color.White,
+            modifier = Modifier.size(20.dp)
+          )
+        }
+      }
+      Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+          text = title,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.ExtraBold,
+          color = Color.White,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis
+        )
+        Text(
+          text = subtitle,
+          style = MaterialTheme.typography.labelSmall,
+          color = Color.White.copy(alpha = 0.9f),
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun ColorfulStatBox(
   modifier: Modifier,
   title: String,
   amountText: String,
   accent: Color,
-  icon: androidx.compose.ui.graphics.vector.ImageVector
+  bgColor: Color,
+  borderColor: Color,
+  icon: ImageVector
 ) {
-  Card(
+  Surface(
     modifier = modifier,
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    shape = RoundedCornerShape(16.dp),
+    color = bgColor,
+    border = BorderStroke(1.2.dp, borderColor)
   ) {
-    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(
+      modifier = Modifier.padding(14.dp),
+      verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
       Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = title, tint = accent, modifier = Modifier.size(16.dp))
+        Surface(
+          shape = CircleShape,
+          color = accent.copy(alpha = 0.14f),
+          modifier = Modifier.size(24.dp)
+        ) {
+          Box(contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = title, tint = accent, modifier = Modifier.size(14.dp))
+          }
+        }
         Spacer(Modifier.width(6.dp))
-        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+          text = title,
+          style = MaterialTheme.typography.labelMedium,
+          fontWeight = FontWeight.Bold,
+          color = accent,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis
+        )
       }
       Text(
         text = amountText,
-        style = TabularAmountStyle.merge(MaterialTheme.typography.titleLarge),
+        style = TabularAmountStyle.merge(MaterialTheme.typography.titleLarge).copy(fontWeight = FontWeight.ExtraBold),
         color = accent,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
@@ -391,7 +473,7 @@ fun TransactionRowCard(
   val isIncoming = tx.type == TransactionType.IN || tx.type == TransactionType.CREDIT_SALE
   val accent = when (tx.type) {
     TransactionType.IN, TransactionType.CREDIT_SALE -> EmeraldPrimary
-    TransactionType.CREDIT_NOTE, TransactionType.DEBIT_NOTE -> MaterialTheme.colorScheme.tertiary
+    TransactionType.CREDIT_NOTE, TransactionType.DEBIT_NOTE -> IndigoAccent
     else -> CoralError
   }
   val sign = if (isIncoming) "+" else "-"
@@ -412,17 +494,20 @@ fun TransactionRowCard(
           Text(
             text = categoryTitle,
             style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false)
           )
           Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = accent.copy(alpha = 0.12f),
             shape = RoundedCornerShape(6.dp)
           ) {
             Text(
               text = tx.method.wireValue,
               style = MaterialTheme.typography.labelSmall,
+              fontWeight = FontWeight.Bold,
+              color = accent,
               modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
             )
           }
@@ -453,7 +538,7 @@ fun TransactionRowCard(
       Column(horizontalAlignment = Alignment.End) {
         Text(
           text = "$sign${BukuKiraStrings.formatCurrency(currency, tx.amount)}",
-          style = TabularAmountStyle.merge(MaterialTheme.typography.titleSmall),
+          style = TabularAmountStyle.merge(MaterialTheme.typography.titleSmall).copy(fontWeight = FontWeight.Bold),
           color = accent
         )
         if (canDelete) {
@@ -462,7 +547,7 @@ fun TransactionRowCard(
             contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp),
             modifier = Modifier.testTag("delete_tx_${tx.id}")
           ) {
-            Text("Padam", style = MaterialTheme.typography.labelSmall, color = CoralError)
+            Text(BukuKiraStrings.ui(language).delete, style = MaterialTheme.typography.labelSmall, color = CoralError)
           }
         }
       }

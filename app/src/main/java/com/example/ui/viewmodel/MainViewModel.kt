@@ -535,10 +535,16 @@ class MainViewModel(
     }
   }
 
-  fun exportPdf(uri: Uri, workspace: BusinessWorkspace, stats: FinancialStats, lang: LanguageCode) {
+  fun exportPdf(
+    uri: Uri,
+    workspace: BusinessWorkspace,
+    stats: FinancialStats,
+    lang: LanguageCode,
+    ownerPrivateInfo: OwnerPrivateInfo? = null
+  ) {
     viewModelScope.launch {
       _isBusy.value = true
-      ExportManager.writePdfToUri(appContext, uri, workspace, stats, lang)
+      ExportManager.writePdfToUri(appContext, uri, workspace, stats, lang, ownerPrivateInfo)
         .onSuccess { _feedback.value = "PDF statements exported." to null }
         .onFailure { _feedback.value = null to (it.localizedMessage ?: "PDF export failed.") }
       _isBusy.value = false

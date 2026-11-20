@@ -66,4 +66,47 @@ class ExportManagerTest {
     assertTrue(csv.contains("PROFIT AND LOSS STATEMENT"))
     assertTrue(csv.contains("BALANCED"))
   }
+
+  @Test
+  fun balanceSheetPdfLayout_alwaysFitsOnSingleA4Page_andLedgerFormatsThreeColumns() {
+    val txs = AccountingCatalog.sampleTransactions("biz_1", "owner_1", listOf("owner_1"))
+    val stats = AccountingEngine.computeStatements(txs, BeginningBalances(), mapOf("2026" to 650.0), "2026", LanguageCode.EN)
+
+    val bsRows = stats.rows.filter {
+      it.statementType == com.example.model.StatementType.BALANCE_SHEET
+    }
+    val pnlRows = stats.rows.filter {
+      it.statementType == com.example.model.StatementType.PNL
+    }
+    assertTrue(pnlRows.none { it.section == "PROFIT & LOSS SUMMARY" })
+    assertTrue(pnlRows.none { it.label == "Add: Other income" || it.label == "Less: Operating expenses" })
+
+    val layout = ExportManager.computeBalanceSheetLayout(
+      rows = bsRows,
+      hasAddress = true,
+      disclaimerLineCount = 3,
+      hasOwnerId = true,
+      pageHeight = 842f
+    )
+    assertTrue(layout.rowCount >= 20)
+    assertTrue(layout.sectionCount >= 4)
+    assertTrue(layout.fittedTotalHeight <= layout.maxAvailableHeight)
+
+    // Even with heavily inflated disclaimers/notes, scale clamps total height onto 1 A4 page
+    val extremeLayout = ExportManager.computeBalanceSheetLayout(
+      rows = bsRows + bsRows,
+      hasAddress = true,
+      disclaimerLineCount = 10,
+      hasOwnerId = true,
+      pageHeight = 842f
+    )
+    assertTrue(extremeLayout.scale < 1f)
+    assertTrue(extremeLayout.fittedTotalHeight <= extremeLayout.maxAvailableHeight + 0.01f)
+
+    // Verify 3-column running balance & comma formatting for Bank ledger
+    val bankLedger = stats.ledgers["Bank"] ?: emptyList()
+    assertEquals("5,000.00", com.example.localization.BukuKiraStrings.formatAmount(bankLedger[0].balance))
+    assertEquals("3,200.00", com.example.localization.BukuKiraStrings.formatAmount(bankLedger[1].balance))
+    assertEquals("5,300.00", com.example.localization.BukuKiraStrings.formatAmount(bankLedger[4].balance))
+  }
 }

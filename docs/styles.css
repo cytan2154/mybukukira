@@ -68,10 +68,9 @@ button {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
+  background: var(--emerald);
+  color: #FFFFFF;
+  box-shadow: 0 2px 10px rgba(4, 120, 87, 0.22);
   padding: calc(10px + var(--safe-top)) 16px 10px;
 }
 
@@ -92,12 +91,13 @@ button {
 }
 
 .brand-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   flex-shrink: 0;
   object-fit: cover;
-  border: 1px solid var(--emerald-border);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .brand-texts {
@@ -105,8 +105,9 @@ button {
 }
 
 .brand-title {
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 800;
+  font-size: 16.5px;
+  color: #FFFFFF;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -114,7 +115,7 @@ button {
 
 .brand-subtitle {
   font-size: 12px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.88);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -141,6 +142,16 @@ button {
 .icon-btn:hover {
   background: var(--bg);
   color: var(--text);
+}
+
+.top-bar .icon-btn {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.top-bar .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  color: #FFFFFF;
 }
 
 .icon-btn svg {
@@ -646,22 +657,114 @@ button {
   margin-bottom: 12px;
 }
 
+.ledger-account-heading {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0F172A;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #0F172A;
+}
+
 .ledger-table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
   font-size: 13px;
 }
 
 .ledger-table th,
 .ledger-table td {
-  padding: 7px 6px;
+  padding: 8px 6px;
   border-bottom: 1px solid var(--border);
   text-align: left;
+  vertical-align: top;
+}
+
+.ledger-table th {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0F172A;
+  border-bottom: 1.5px solid #CBD5E1;
+}
+
+.ledger-table td.ledger-date,
+.ledger-table th.ledger-date {
+  white-space: nowrap;
+  width: 96px;
 }
 
 .ledger-table th.num,
 .ledger-table td.num {
   text-align: right;
+  white-space: nowrap;
+}
+
+.ledger-table td.ledger-bal {
+  font-weight: 600;
+}
+
+.ledger-total-row td {
+  font-weight: 700;
+  background: var(--emerald-soft);
+  border-top: 1.5px solid var(--emerald-border);
+  border-bottom: none;
+}
+
+/* Prepared By & Owner Signature Block */
+.owner-sign-card {
+  margin-top: 4px;
+}
+
+.owner-sign-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.owner-sign-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.owner-sign-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.owner-sign-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.owner-sign-id {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.owner-sign-right {
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  margin-left: auto;
+  padding-top: 24px;
+}
+
+.owner-sign-line {
+  width: 170px;
+  border-top: 1.2px solid #CBD5E1;
+}
+
+.owner-sign-caption {
+  font-size: 12.5px;
+  color: var(--text-muted);
 }
 
 /* Auth / Onboarding Centered Container */
@@ -958,6 +1061,422 @@ button {
   line-height: 1.3;
 }
 
+/* Big Colorful Action Boxes & Tiles Across the App */
+.home-action-box {
+  min-height: 92px;
+  padding: 16px;
+  border-radius: 18px;
+  color: #FFFFFF;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.home-action-box:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.home-action-box:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.home-action-box.in {
+  background: #047857;
+}
+
+.home-action-box.out {
+  background: #DC2626;
+}
+
+.home-action-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-action-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.home-action-title {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.home-action-sub {
+  font-size: 12px;
+  opacity: 0.88;
+  line-height: 1.25;
+}
+
+.stat-box {
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+}
+
+.stat-box.teal {
+  background: #F0FDFA;
+  border-color: #99F6E4;
+}
+
+.stat-box.coral {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+
+.stat-box.indigo {
+  background: #EEF2FF;
+  border-color: #C7D2FE;
+}
+
+.stat-box-title {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stat-box.teal .stat-box-title {
+  color: #0D9488;
+}
+
+.stat-box.coral .stat-box-title {
+  color: #DC2626;
+}
+
+.stat-box.indigo .stat-box-title {
+  color: #4F46E5;
+}
+
+.stat-box-val {
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.stat-box.teal .stat-box-val {
+  color: #0F766E;
+}
+
+.stat-box.coral .stat-box-val {
+  color: #B91C1C;
+}
+
+.stat-box.indigo .stat-box-val {
+  color: #4338CA;
+}
+
+/* Records Filter Colorful Boxes */
+.filter-box-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 460px) {
+  .filter-box-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.filter-box {
+  min-height: 46px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.filter-box.all.active {
+  background: #0D9488;
+  border-color: #0D9488;
+  color: #FFFFFF;
+}
+
+.filter-box.in.active {
+  background: #047857;
+  border-color: #047857;
+  color: #FFFFFF;
+}
+
+.filter-box.out.active {
+  background: #DC2626;
+  border-color: #DC2626;
+  color: #FFFFFF;
+}
+
+.filter-box.credit.active {
+  background: #4F46E5;
+  border-color: #4F46E5;
+  color: #FFFFFF;
+}
+
+/* Credit Module Card + 2x2 Vibrant Tiles + Summary Boxes */
+.credit-hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.credit-hero-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.credit-hero-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.credit-tile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 400px) {
+  .credit-tile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.credit-tile {
+  min-height: 112px;
+  padding: 16px;
+  border-radius: 18px;
+  color: #FFFFFF;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.credit-tile:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.credit-tile:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.credit-tile.teal {
+  background: #0D9488;
+}
+
+.credit-tile.orange {
+  background: #F97316;
+}
+
+.credit-tile.indigo {
+  background: #4F46E5;
+}
+
+.credit-tile.pink {
+  background: #EC4899;
+}
+
+.credit-tile-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.credit-tile-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.credit-tile-title {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.credit-tile-sub {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 2px;
+  line-height: 1.25;
+}
+
+.credit-summary-box {
+  border-radius: 16px;
+  padding: 15px 16px;
+  border: 1.5px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.credit-summary-box.teal {
+  background: #F0FDFA;
+  border-color: #99F6E4;
+}
+
+.credit-summary-box.orange {
+  background: #FFF7ED;
+  border-color: #FED7AA;
+}
+
+.credit-summary-label {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.credit-summary-box.teal .credit-summary-label {
+  color: #0D9488;
+}
+
+.credit-summary-box.orange .credit-summary-label {
+  color: #C2410C;
+}
+
+.credit-summary-val {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.credit-summary-box.teal .credit-summary-val {
+  color: #0F766E;
+}
+
+.credit-summary-box.orange .credit-summary-val {
+  color: #9A3412;
+}
+
+.credit-summary-sub {
+  font-size: 11.5px;
+  color: #475569;
+  margin-top: 2px;
+}
+
+/* Credit Entry Modal Styles */
+.credit-modal-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.credit-amount-box {
+  background: #F1F5F9;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.credit-amount-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.credit-notice-amber {
+  background: #FEFCE8;
+  border: 1.2px solid #FDE68A;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #92400E;
+}
+
+/* Statements Colorful Action Boxes */
+.stmt-action-box {
+  min-height: 58px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+.stmt-action-box:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.stmt-action-box:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.stmt-action-box.emerald {
+  background: #047857;
+  color: #FFFFFF;
+}
+
+.stmt-action-box.teal {
+  background: #0D9488;
+  color: #FFFFFF;
+}
+
+.stmt-action-box.indigo {
+  background: #4F46E5;
+  color: #FFFFFF;
+}
+
+.stmt-action-box.orange {
+  background: #F97316;
+  color: #FFFFFF;
+}
+
+.stmt-action-box.amber-soft {
+  background: #FFF7ED;
+  border: 1.5px solid #FED7AA;
+  color: #C2410C;
+}
+
+.stmt-action-box.indigo-soft {
+  background: #EEF2FF;
+  border: 1.5px solid #C7D2FE;
+  color: #4F46E5;
+}
+
+.stmt-action-box svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 /* Toast Notification */
 .toast {
   position: fixed;
@@ -1018,7 +1537,7 @@ button {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 14mm;
+    margin: 10mm;
   }
   body {
     background: #FFFFFF;
@@ -1039,33 +1558,39 @@ button {
   }
   .print-header {
     border-bottom: 1.5px solid #047857;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
   }
   .print-biz {
-    font-size: 17pt;
+    font-size: 15.5pt;
     font-weight: 700;
     color: #047857;
   }
   .print-meta {
-    font-size: 9.5pt;
+    font-size: 9pt;
     color: #334155;
   }
   .print-heading {
-    font-size: 12pt;
+    font-size: 11.5pt;
     font-weight: 700;
-    margin-top: 6px;
+    margin-top: 4px;
   }
   .print-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 9.5pt;
+    font-size: 9pt;
   }
   .print-table td,
   .print-table th {
-    padding: 4px 4px;
+    padding: 3.5px 4px;
     border-bottom: 0.5px solid #E2E8F0;
     vertical-align: top;
+    text-align: left;
+  }
+  .print-table td.col-date,
+  .print-table th.col-date {
+    white-space: nowrap;
+    width: 72px;
   }
   .print-table td.num,
   .print-table th.num {
@@ -1074,7 +1599,7 @@ button {
     white-space: nowrap;
   }
   .print-sec-row td {
-    padding-top: 10px;
+    padding-top: 8px;
     font-weight: 700;
     color: #047857;
     border-bottom: 1px solid #CBD5E1;
@@ -1084,7 +1609,7 @@ button {
     background: #F1F5F9;
   }
   .print-note {
-    font-size: 8pt;
+    font-size: 7.5pt;
     color: #475569;
   }
   .print-ledger-block {
@@ -1094,14 +1619,129 @@ button {
   .print-ledger-title {
     font-size: 10.5pt;
     font-weight: 700;
-    margin: 8px 0 4px;
+    margin: 10px 0 4px;
+    padding-bottom: 3px;
+    border-bottom: 1.5px solid #0F172A;
     color: #0F172A;
   }
+  .print-ledger-table th {
+    font-weight: 700;
+    color: #0F172A;
+    border-bottom: 1px solid #94A3B8;
+  }
   .print-disclaimer {
-    margin-top: 14px;
-    padding-top: 8px;
+    margin-top: 10px;
+    padding-top: 6px;
     border-top: 1px solid #CBD5E1;
-    font-size: 8pt;
+    font-size: 7.5pt;
     color: #475569;
+  }
+
+  /* Prepared By & Owner Signature Block in PDF */
+  .print-sign-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 14px;
+    padding-top: 6px;
+    gap: 20px;
+    break-inside: avoid;
+  }
+  .print-sign-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .print-sign-label {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #1E293B;
+  }
+  .print-sign-name {
+    font-size: 9.5pt;
+    font-weight: 800;
+    color: #0F172A;
+  }
+  .print-sign-id {
+    font-size: 8.5pt;
+    color: #64748B;
+  }
+  .print-sign-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    padding-top: 20px;
+  }
+  .print-sign-line {
+    width: 145px;
+    border-top: 1px solid #CBD5E1;
+  }
+  .print-sign-caption {
+    font-size: 8.5pt;
+    color: #64748B;
+  }
+
+  /* Force Balance Sheet to stay strictly on ONE A4 page */
+  .print-page-bs {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .print-page-bs .print-header {
+    padding-bottom: 4px;
+    margin-bottom: 5px;
+  }
+  .print-page-bs .print-biz {
+    font-size: 13.5pt;
+    line-height: 1.15;
+  }
+  .print-page-bs .print-meta {
+    font-size: 8pt;
+    line-height: 1.2;
+  }
+  .print-page-bs .print-heading {
+    font-size: 10pt;
+    margin-top: 2px;
+  }
+  .print-page-bs .print-table {
+    font-size: 8pt;
+    line-height: 1.18;
+  }
+  .print-page-bs .print-table td,
+  .print-page-bs .print-table th {
+    padding: 1.8px 4px;
+  }
+  .print-page-bs .print-sec-row td {
+    padding-top: 4px;
+    padding-bottom: 1.5px;
+    font-size: 8pt;
+  }
+  .print-page-bs .print-total-row td {
+    padding: 2px 4px;
+  }
+  .print-page-bs .print-note {
+    font-size: 7pt;
+    line-height: 1.15;
+  }
+  .print-page-bs .print-sign-block {
+    margin-top: 8px;
+    padding-top: 2px;
+  }
+  .print-page-bs .print-sign-label,
+  .print-page-bs .print-sign-id,
+  .print-page-bs .print-sign-caption {
+    font-size: 7.5pt;
+  }
+  .print-page-bs .print-sign-name {
+    font-size: 8.5pt;
+  }
+  .print-page-bs .print-sign-right {
+    padding-top: 14px;
+  }
+  .print-page-bs .print-disclaimer {
+    margin-top: 6px;
+    padding-top: 4px;
+    font-size: 7pt;
+    line-height: 1.2;
   }
 }

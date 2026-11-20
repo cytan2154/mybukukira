@@ -27,6 +27,20 @@ val OnAmberContainer = Color(0xFF78350F)
 val IndigoAccent = Color(0xFF4F46E5)
 val IndigoContainer = Color(0xFFE0E7FF)
 
+val TealTile = Color(0xFF0D9488)
+val TealSoftBg = Color(0xFFF0FDFA)
+val TealSoftBorder = Color(0xFF99F6E4)
+
+val OrangeTile = Color(0xFFF97316)
+val OrangeDarkText = Color(0xFFC2410C)
+val OrangeSoftBg = Color(0xFFFFF7ED)
+val OrangeSoftBorder = Color(0xFFFED7AA)
+
+val PinkTile = Color(0xFFEC4899)
+val AmberNoticeBg = Color(0xFFFEFCE8)
+val AmberNoticeBorder = Color(0xFFFDE68A)
+val AmberNoticeText = Color(0xFF92400E)
+
 // Dark Mode Counterparts
 val DarkBackground = Color(0xFF0B1120)
 val DarkSurface = Color(0xFF111827)

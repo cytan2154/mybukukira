@@ -324,8 +324,26 @@ object AccountingEngine {
       }
     }
 
-    // Build General Ledger (Lejar Am)
+    // Build General Ledger (Lejar Am) - 3-column running balance format (Debit | Credit | Balance)
     val ledgers = linkedMapOf<String, MutableList<LedgerEntry>>()
+    val runningBalanceByAcc = linkedMapOf<String, Double>()
+    val creditNormalAccounts = setOf(
+      "Pinjaman dan overdraf",
+      "Pinjaman dan Overdraft",
+      "Pemiutang dagangan",
+      "Pemiutang lain",
+      "Akaun modal",
+      "Modal",
+      "Jualan Tunai",
+      "Jualan Kredit",
+      "Dividen",
+      "Faedah dan diskaun",
+      "Sewa, royalti, dan premium",
+      "Pendapatan lain",
+      "Pelupusan Aset",
+      "Pulangan Belian",
+      "Upah Servis / Kerja (rekod lama)"
+    )
     fun addLedger(accMs: String, date: String, desc: String, dr: Double, cr: Double) {
       val normalized = when (accMs) {
         "Beli Aset Bukan Semasa Lain" -> "Aset bukan semasa lain"
@@ -336,7 +354,10 @@ object AccountingEngine {
       }
       val translatedAcc = tL(normalized)
       val entries = ledgers.getOrPut(translatedAcc) { mutableListOf() }
-      entries.add(LedgerEntry(date = date, description = desc, debit = dr, credit = cr))
+      val delta = if (normalized in creditNormalAccounts) (cr - dr) else (dr - cr)
+      val nextBalance = (runningBalanceByAcc[translatedAcc] ?: 0.0) + delta
+      runningBalanceByAcc[translatedAcc] = nextBalance
+      entries.add(LedgerEntry(date = date, description = desc, debit = dr, credit = cr, balance = nextBalance))
     }
 
     val debitNormalBf = setOf(
@@ -485,7 +506,7 @@ object AccountingEngine {
     addRow(StatementType.PNL, labels.secCogs, labels.addPurchases, purchases)
     addRow(StatementType.PNL, labels.secCogs, labels.lessClosingStock, -abs(closing))
     addRow(StatementType.PNL, labels.secCogs, labels.netCogs, netCOGS, isTotal = true)
-    addRow(StatementType.PNL, labels.secSummaryPnl, labels.grossProfit, gross, isTotal = true)
+    addRow(StatementType.PNL, labels.secCogs, labels.grossProfit, gross, isTotal = true)
 
     AccountingCatalog.officialExpenseLabelsMs.forEach { k ->
       addRow(StatementType.PNL, labels.secOpEx, tL(k), expensesByCategory[k] ?: 0.0)
@@ -494,10 +515,7 @@ object AccountingEngine {
       addRow(StatementType.PNL, labels.secExtraOpEx, tL(k), expensesByCategory[k] ?: 0.0)
     }
     addRow(StatementType.PNL, labels.secOpEx, labels.totalOpEx, expenses, isTotal = true)
-
-    addRow(StatementType.PNL, labels.secSummaryPnl, labels.addOtherIncome, otherIncome)
-    addRow(StatementType.PNL, labels.secSummaryPnl, labels.lessOpEx, -expenses)
-    addRow(StatementType.PNL, labels.secSummaryPnl, labels.netProfit, netProfit, isTotal = true)
+    addRow(StatementType.PNL, labels.secOpEx, labels.netProfit, netProfit, isTotal = true)
 
     // Balance Sheet rows
     addRow(StatementType.BALANCE_SHEET, labels.secNonCurrentAssets, tL("Tanah dan bangunan"), land)

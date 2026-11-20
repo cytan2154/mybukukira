@@ -1,5 +1,5 @@
 import { defaultBeginningBalances } from './accounting-engine.js';
-import { formatCurrency, statementLabels } from './strings.js';
+import { formatCurrency, formatNumber, statementLabels } from './strings.js';
 
 function randomShortHex(len = 16) {
   const bytes = new Uint8Array(Math.ceil(len / 2));
@@ -240,7 +240,7 @@ export function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-export function buildPrintableHtml(workspace, stats, lang = 'ms') {
+export function buildPrintableHtml(workspace, stats, lang = 'ms', ownerPrivateInfo = null) {
   const labels = statementLabels(lang);
   const infoParts = [];
   if (workspace.businessRegNo) infoParts.push(escapeHtml(workspace.businessRegNo));
@@ -248,10 +248,24 @@ export function buildPrintableHtml(workspace, stats, lang = 'ms') {
   infoParts.push(`FY ${escapeHtml(stats.selectedYear)}`);
   const infoLine = infoParts.join(' • ');
 
+  const ownerNameText = String(workspace.ownerName || '').trim() || '-';
+  const ownerIdText = String(ownerPrivateInfo?.ownerIdNumber || '').trim();
+  const signatureBlockHtml = `
+    <div class="print-sign-block">
+      <div class="print-sign-left">
+        <div class="print-sign-label">${escapeHtml(labels.preparedCertifiedBy)}</div>
+        <div class="print-sign-name">${escapeHtml(ownerNameText)}</div>
+        ${ownerIdText ? `<div class="print-sign-id">${escapeHtml(labels.ownerIdNoLabel)} ${escapeHtml(ownerIdText)}</div>` : ''}
+      </div>
+      <div class="print-sign-right">
+        <div class="print-sign-line"></div>
+        <div class="print-sign-caption">${escapeHtml(labels.ownerSignatureLabel)}</div>
+      </div>
+    </div>
+  `;
+
   const renderSectionTable = (type, heading) => {
-    const filtered = (stats.rows || []).filter(
-      (r) => r.statementType === type || (type === 'BALANCE_SHEET' && r.statementType === 'CHECK')
-    );
+    const filtered = (stats.rows || []).filter((r) => r.statementType === type);
     let lastSection = '';
     const rowsHtml = filtered
       .map((r) => {
@@ -270,8 +284,9 @@ export function buildPrintableHtml(workspace, stats, lang = 'ms') {
       })
       .join('');
 
+    const pageClass = type === 'BALANCE_SHEET' ? 'print-page print-page-bs' : 'print-page';
     return `
-      <section class="print-page">
+      <section class="${pageClass}">
         <div class="print-header">
           <div class="print-biz">${escapeHtml(workspace.businessName || 'BukuKira')}</div>
           <div class="print-meta">${infoLine}</div>
@@ -279,6 +294,7 @@ export function buildPrintableHtml(workspace, stats, lang = 'ms') {
           <div class="print-heading">${escapeHtml(heading)} — ${escapeHtml(stats.selectedYear)}</div>
         </div>
         <table class="print-table"><tbody>${rowsHtml}</tbody></table>
+        ${signatureBlockHtml}
         <div class="print-disclaimer">${escapeHtml(labels.disclaimer)}</div>
       </section>
     `;
@@ -300,29 +316,41 @@ export function buildPrintableHtml(workspace, stats, lang = 'ms') {
             let crSum = 0;
             const body = entries
               .map((e) => {
-                drSum += Number(e.debit) || 0;
-                crSum += Number(e.credit) || 0;
+                const drVal = Number(e.debit) || 0;
+                const crVal = Number(e.credit) || 0;
+                const balVal = Number(e.balance) || 0;
+                drSum += drVal;
+                crSum += crVal;
                 return `<tr>
-                  <td>${escapeHtml(e.date)}</td>
+                  <td class="col-date">${escapeHtml(e.date)}</td>
                   <td>${escapeHtml(e.description)}</td>
-                  <td class="num">${e.debit > 0 ? Number(e.debit).toFixed(2) : ''}</td>
-                  <td class="num">${e.credit > 0 ? Number(e.credit).toFixed(2) : ''}</td>
+                  <td class="num">${drVal > 0 ? escapeHtml(formatNumber(drVal)) : '-'}</td>
+                  <td class="num">${crVal > 0 ? escapeHtml(formatNumber(crVal)) : '-'}</td>
+                  <td class="num">${escapeHtml(formatNumber(balVal))}</td>
                 </tr>`;
               })
               .join('');
+            const closingBal = entries.length > 0 ? Number(entries[entries.length - 1].balance) || 0 : 0;
             return `
               <div class="print-ledger-block">
-                <div class="print-ledger-title">${escapeHtml(accName)}</div>
+                <div class="print-ledger-title">${escapeHtml(labels.ledgerAccountPrefix)}: ${escapeHtml(accName)}</div>
                 <table class="print-table print-ledger-table">
                   <thead>
-                    <tr><th>Date</th><th>Description</th><th class="num">Debit</th><th class="num">Credit</th></tr>
+                    <tr>
+                      <th class="col-date">${escapeHtml(labels.ledgerColDate)}</th>
+                      <th>${escapeHtml(labels.ledgerColDetails)}</th>
+                      <th class="num">${escapeHtml(labels.ledgerColDebit)}</th>
+                      <th class="num">${escapeHtml(labels.ledgerColCredit)}</th>
+                      <th class="num">${escapeHtml(labels.ledgerColBalance)}</th>
+                    </tr>
                   </thead>
                   <tbody>
                     ${body}
                     <tr class="print-total-row">
-                      <td></td><td>Total</td>
-                      <td class="num">${drSum.toFixed(2)}</td>
-                      <td class="num">${crSum.toFixed(2)}</td>
+                      <td></td><td>${escapeHtml(labels.ledgerTotal)}</td>
+                      <td class="num">${escapeHtml(formatNumber(drSum))}</td>
+                      <td class="num">${escapeHtml(formatNumber(crSum))}</td>
+                      <td class="num">${escapeHtml(formatNumber(closingBal))}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -354,9 +382,9 @@ export function downloadTextFile(filename, content, mimeType = 'text/plain;chars
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-export function printStatementsPdf(workspace, stats, lang = 'ms') {
+export function printStatementsPdf(workspace, stats, lang = 'ms', ownerPrivateInfo = null) {
   const printRoot = document.getElementById('print-root');
   if (!printRoot) return;
-  printRoot.innerHTML = buildPrintableHtml(workspace, stats, lang);
+  printRoot.innerHTML = buildPrintableHtml(workspace, stats, lang, ownerPrivateInfo);
   window.print();
 }

@@ -45,6 +45,14 @@ class AccountingEngineTest {
     assertEquals(9800.0, stats.totalLiabilitiesAndEquity, 0.001)
     assertEquals(0.0, stats.balanceDifference, 0.001)
     assertTrue(stats.isBalanced)
+
+    val bankLedger = stats.ledgers["Bank"] ?: emptyList()
+    assertEquals(5, bankLedger.size)
+    assertEquals(5000.0, bankLedger[0].balance, 0.001)
+    assertEquals(3200.0, bankLedger[1].balance, 0.001)
+    assertEquals(6800.0, bankLedger[2].balance, 0.001)
+    assertEquals(5600.0, bankLedger[3].balance, 0.001)
+    assertEquals(5300.0, bankLedger[4].balance, 0.001)
   }
 
   @Test

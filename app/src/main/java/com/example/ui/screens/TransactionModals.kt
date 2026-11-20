@@ -76,6 +76,9 @@ import com.example.model.CategorySpec
 import com.example.model.LanguageCode
 import com.example.model.PaymentMethod
 import com.example.model.TransactionType
+import com.example.ui.theme.AmberNoticeBg
+import com.example.ui.theme.AmberNoticeBorder
+import com.example.ui.theme.AmberNoticeText
 import com.example.ui.theme.CoralContainer
 import com.example.ui.theme.CoralError
 import com.example.ui.theme.EmeraldContainer
@@ -794,12 +797,12 @@ fun CreditEntrySheet(
     else -> selectedPurchaseOptId
   }
 
-  val title = when (initialType) {
-    TransactionType.CREDIT_SALE -> strings.creditSale
-    TransactionType.CREDIT_PURCHASE -> strings.creditPurchase
-    TransactionType.CREDIT_NOTE -> strings.creditNote
-    TransactionType.DEBIT_NOTE -> strings.debitNote
-    else -> strings.creditTitle
+  val (title, subtitle, partyLabel) = when (initialType) {
+    TransactionType.CREDIT_SALE -> Triple(strings.creditSale, strings.creditSaleModalSub, strings.customerNameLabel)
+    TransactionType.CREDIT_PURCHASE -> Triple(strings.creditPurchase, strings.creditPurchaseModalSub, strings.supplierNameLabel)
+    TransactionType.CREDIT_NOTE -> Triple(strings.creditNote, strings.creditNoteModalSub, strings.customerNameLabel)
+    TransactionType.DEBIT_NOTE -> Triple(strings.debitNote, strings.debitNoteModalSub, strings.supplierNameLabel)
+    else -> Triple(strings.creditTitle, strings.creditSectionSubtitle, strings.customerNameLabel)
   }
 
   val parsedAmount = amountText.toDoubleOrNull()
@@ -811,93 +814,250 @@ fun CreditEntrySheet(
       modifier = Modifier
         .fillMaxWidth()
         .verticalScroll(rememberScrollState())
-        .padding(horizontal = 20.dp, vertical = 8.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp)
+        .padding(horizontal = 20.dp)
+        .padding(bottom = 24.dp),
+      verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-      Text(title, style = MaterialTheme.typography.headlineSmall)
-
-      if (initialType == TransactionType.CREDIT_PURCHASE) {
-        Text("Item Belian Kredit", style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          AccountingCatalog.creditPurchaseOptions.forEach { opt ->
-            val label = when (language) {
-              LanguageCode.MS -> opt.labelMs
-              LanguageCode.EN -> opt.labelEn
-              LanguageCode.ZH -> opt.labelZh
-            }
-            FilterChip(
-              selected = selectedPurchaseOptId == opt.id,
-              onClick = { selectedPurchaseOptId = opt.id },
-              label = { Text(label) }
+      // Header Row + Circular Close Button
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.SpaceBetween
+      ) {
+        Column(
+          modifier = Modifier.weight(1f).padding(end = 12.dp),
+          verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+          Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface
+          )
+          Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
+        }
+        Surface(
+          shape = CircleShape,
+          color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+          IconButton(
+            onClick = onDismiss,
+            modifier = Modifier.size(48.dp)
+          ) {
+            Icon(
+              imageVector = Icons.Rounded.Close,
+              contentDescription = strings.cancel
             )
           }
         }
       }
 
-      OutlinedTextField(
-        value = partyName,
-        onValueChange = { partyName = it },
-        label = { Text("Nama Pelanggan / Pembekal") },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth().testTag("credit_party_input")
-      )
-
-      OutlinedTextField(
-        value = invoiceNo,
-        onValueChange = { invoiceNo = it },
-        label = { Text("No. Invois / Bil / Nota") },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth().testTag("credit_invoice_input")
-      )
-
-      OutlinedTextField(
-        value = amountText,
-        onValueChange = { amountText = it },
-        label = { Text("Jumlah ($currency)") },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth().testTag("credit_amount_input")
-      )
-
-      OutlinedTextField(
-        value = dateText,
-        onValueChange = { dateText = it },
-        label = { Text("Tarikh (yyyy-MM-dd)") },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth()
-      )
-
-      OutlinedTextField(
-        value = noteText,
-        onValueChange = { noteText = it },
-        label = { Text("Nota") },
-        modifier = Modifier.fillMaxWidth()
-      )
-
-      Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-      ) {
-        TextButton(onClick = onDismiss, modifier = Modifier.weight(1f).height(50.dp)) {
-          Text(strings.cancel)
+      if (initialType == TransactionType.CREDIT_PURCHASE) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+          Text(
+            text = "Item Belian Kredit",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+          )
+          FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AccountingCatalog.creditPurchaseOptions.forEach { opt ->
+              val label = when (language) {
+                LanguageCode.MS -> opt.labelMs
+                LanguageCode.EN -> opt.labelEn
+                LanguageCode.ZH -> opt.labelZh
+              }
+              FilterChip(
+                selected = selectedPurchaseOptId == opt.id,
+                onClick = { selectedPurchaseOptId = opt.id },
+                label = { Text(label) }
+              )
+            }
+          }
         }
-        Button(
-          onClick = {
-            onSave(
-              dateText.trim(),
-              initialType,
-              categoryId,
-              parsedAmount!!,
-              partyName.trim(),
-              invoiceNo.trim(),
-              noteText.trim()
+      }
+
+      // Customer / Supplier Name
+      Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+          text = partyLabel,
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface
+        )
+        OutlinedTextField(
+          value = partyName,
+          onValueChange = { partyName = it },
+          placeholder = { Text(partyLabel) },
+          singleLine = true,
+          shape = RoundedCornerShape(14.dp),
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = EmeraldPrimary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+          ),
+          modifier = Modifier.fillMaxWidth().testTag("credit_party_input")
+        )
+      }
+
+      // 2-Column Date + Invoice / Bill No.
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+        Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          Text(
+            text = when (language) {
+              LanguageCode.EN -> "Date"
+              LanguageCode.ZH -> "日期"
+              LanguageCode.MS -> "Tarikh"
+            },
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+          )
+          OutlinedTextField(
+            value = dateText,
+            onValueChange = { dateText = it },
+            trailingIcon = {
+              Icon(
+                imageVector = Icons.Rounded.CalendarToday,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+              )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth()
+          )
+        }
+        Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          Text(
+            text = strings.invoiceBillLabel,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+          )
+          OutlinedTextField(
+            value = invoiceNo,
+            onValueChange = { invoiceNo = it },
+            placeholder = { Text("INV-001") },
+            singleLine = true,
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth().testTag("credit_invoice_input")
+          )
+        }
+      }
+
+      // Amount (RM) Hero Field
+      Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+          text = "${strings.creditAmountLabel} ($currency)",
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface
+        )
+        OutlinedTextField(
+          value = amountText,
+          onValueChange = { amountText = it },
+          placeholder = {
+            Text(
+              text = "0.00",
+              fontSize = 22.sp,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
           },
-          enabled = canSubmit,
-          modifier = Modifier.weight(1.5f).height(50.dp).testTag("save_credit_button")
-        ) {
-          Text(strings.save)
-        }
+          textStyle = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+          singleLine = true,
+          shape = RoundedCornerShape(14.dp),
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = EmeraldPrimary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+          ),
+          modifier = Modifier.fillMaxWidth().testTag("credit_amount_input")
+        )
+      }
+
+      // Details / Note (Optional)
+      Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+          text = strings.detailsNoteOptionalLabel,
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface
+        )
+        OutlinedTextField(
+          value = noteText,
+          onValueChange = { noteText = it },
+          placeholder = { Text(strings.creditNotePlaceholder) },
+          minLines = 3,
+          maxLines = 4,
+          shape = RoundedCornerShape(14.dp),
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = EmeraldPrimary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
+
+      // Warm Amber Callout Box
+      Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = AmberNoticeBg,
+        border = BorderStroke(1.dp, AmberNoticeBorder),
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Text(
+          text = strings.creditBalanceNotice,
+          style = MaterialTheme.typography.bodySmall,
+          lineHeight = 18.sp,
+          color = AmberNoticeText,
+          modifier = Modifier.padding(14.dp)
+        )
+      }
+
+      // Full-Width Emerald Save Credit Record CTA Button
+      Button(
+        onClick = {
+          onSave(
+            dateText.trim(),
+            initialType,
+            categoryId,
+            parsedAmount!!,
+            partyName.trim(),
+            invoiceNo.trim(),
+            noteText.trim()
+          )
+        },
+        enabled = canSubmit,
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary),
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(52.dp)
+          .testTag("save_credit_button")
+      ) {
+        Text(
+          text = strings.saveCreditRecord,
+          fontSize = 16.sp,
+          fontWeight = FontWeight.Bold
+        )
       }
     }
   }

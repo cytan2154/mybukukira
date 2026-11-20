@@ -50,8 +50,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,6 +79,7 @@ import com.example.ui.screens.TeamManagementSheet
 import com.example.ui.screens.TransactionEntrySheet
 import com.example.ui.screens.WorkspaceOnboardingScreen
 import com.example.ui.theme.BukuKiraTheme
+import com.example.ui.theme.EmeraldPrimary
 import com.example.ui.viewmodel.BukuKiraUiState
 import com.example.ui.viewmodel.BukuKiraViewModelFactory
 import com.example.ui.viewmodel.MainViewModel
@@ -271,7 +274,7 @@ private fun AuthenticatedWorkspaceApp(
         ActivityResultContracts.CreateDocument("application/pdf")
       ) { uri ->
         val stats = current.stats
-        if (uri != null && stats != null) vm.exportPdf(uri, ws, stats, current.language)
+        if (uri != null && stats != null) vm.exportPdf(uri, ws, stats, current.language, current.ownerPrivateInfo)
       }
       val csvLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("text/csv")
@@ -309,13 +312,15 @@ private fun AuthenticatedWorkspaceApp(
                   Text(
                     ws.businessName.ifBlank { "BukuKira" },
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                   )
                   Text(
-                    "${ws.currency} • FY ${current.selectedYear} • ${current.currentUserRole.wireValue}",
+                    "${ws.ownerName.ifBlank { ws.currency }} • ${current.selectedYear}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.88f)
                   )
                 }
               },
@@ -324,29 +329,31 @@ private fun AuthenticatedWorkspaceApp(
                   onClick = { showLanguageDialog = true },
                   modifier = Modifier.testTag("top_language_button")
                 ) {
-                  Icon(Icons.Default.Language, contentDescription = "Language")
+                  Icon(Icons.Default.Language, contentDescription = "Language", tint = Color.White)
                 }
                 IconButton(
                   onClick = { showTeamSheet = true },
                   modifier = Modifier.testTag("top_team_button")
                 ) {
-                  Icon(Icons.Default.Groups, contentDescription = strings.teamTitle)
+                  Icon(Icons.Default.Groups, contentDescription = strings.teamTitle, tint = Color.White)
                 }
                 IconButton(
                   onClick = { showLicenceSheet = true },
                   modifier = Modifier.testTag("top_licence_button")
                 ) {
-                  Icon(Icons.Default.Key, contentDescription = strings.licenceTitle)
+                  Icon(Icons.Default.Key, contentDescription = strings.licenceTitle, tint = Color.White)
                 }
                 IconButton(
                   onClick = { showSettingsSheet = true },
                   modifier = Modifier.testTag("top_settings_button")
                 ) {
-                  Icon(Icons.Default.Settings, contentDescription = strings.settingsTitle)
+                  Icon(Icons.Default.Settings, contentDescription = strings.settingsTitle, tint = Color.White)
                 }
               },
               colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = EmeraldPrimary,
+                titleContentColor = Color.White,
+                actionIconContentColor = Color.White
               )
             )
           },
@@ -417,6 +424,8 @@ private fun AuthenticatedWorkspaceApp(
                     transactions = current.filteredTransactions,
                     onSearchQueryChange = vm::setSearchQuery,
                     onFilterChange = vm::setRecordsFilter,
+                    onOpenMoneyIn = { txModalInitialType = TransactionType.IN },
+                    onOpenMoneyOut = { txModalInitialType = TransactionType.OUT },
                     onDeleteTransaction = { txId -> vm.deleteTransaction(ws.id, txId) }
                   )
 
@@ -447,6 +456,7 @@ private fun AuthenticatedWorkspaceApp(
                       availableYears = years,
                       language = current.language,
                       currentUserRole = current.currentUserRole,
+                      ownerPrivateInfo = current.ownerPrivateInfo,
                       onSelectYear = vm::setSelectedYear,
                       onOpenClosingStock = { showClosingStockDialog = true },
                       onOpenBeginningBalances = { showBeginningBalancesSheet = true },

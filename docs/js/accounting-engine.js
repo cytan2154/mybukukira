@@ -317,8 +317,26 @@ export function computeStatements(
     }
   }
 
-  // General Ledger (Lejar Am)
+  // General Ledger (Lejar Am) - 3-column running balance format (Debit | Credit | Balance)
   const ledgers = {};
+  const runningBalanceByAcc = {};
+  const creditNormalAccounts = new Set([
+    'Pinjaman dan overdraf',
+    'Pinjaman dan Overdraft',
+    'Pemiutang dagangan',
+    'Pemiutang lain',
+    'Akaun modal',
+    'Modal',
+    'Jualan Tunai',
+    'Jualan Kredit',
+    'Dividen',
+    'Faedah dan diskaun',
+    'Sewa, royalti, dan premium',
+    'Pendapatan lain',
+    'Pelupusan Aset',
+    'Pulangan Belian',
+    'Upah Servis / Kerja (rekod lama)'
+  ]);
   const addLedger = (accMs, date, desc, dr, cr) => {
     const normalizedMap = {
       'Beli Aset Bukan Semasa Lain': 'Aset bukan semasa lain',
@@ -329,7 +347,16 @@ export function computeStatements(
     const normalized = normalizedMap[accMs] || accMs;
     const translatedAcc = tL(normalized);
     if (!ledgers[translatedAcc]) ledgers[translatedAcc] = [];
-    ledgers[translatedAcc].push({ date, description: desc, debit: dr, credit: cr });
+    const delta = creditNormalAccounts.has(normalized) ? cr - dr : dr - cr;
+    const nextBalance = (runningBalanceByAcc[translatedAcc] || 0) + delta;
+    runningBalanceByAcc[translatedAcc] = nextBalance;
+    ledgers[translatedAcc].push({
+      date,
+      description: desc,
+      debit: dr,
+      credit: cr,
+      balance: nextBalance
+    });
   };
 
   const debitNormalBf = new Set([
@@ -456,7 +483,7 @@ export function computeStatements(
   addRow('PNL', labels.secCogs, labels.addPurchases, purchases);
   addRow('PNL', labels.secCogs, labels.lessClosingStock, -Math.abs(closing));
   addRow('PNL', labels.secCogs, labels.netCogs, netCOGS, '', true);
-  addRow('PNL', labels.secSummaryPnl, labels.grossProfit, gross, '', true);
+  addRow('PNL', labels.secCogs, labels.grossProfit, gross, '', true);
 
   OFFICIAL_EXPENSE_LABELS_MS.forEach((k) => {
     addRow('PNL', labels.secOpEx, tL(k), expensesByCategory[k] || 0);
@@ -466,10 +493,7 @@ export function computeStatements(
     .sort()
     .forEach((k) => addRow('PNL', labels.secExtraOpEx, tL(k), expensesByCategory[k] || 0));
   addRow('PNL', labels.secOpEx, labels.totalOpEx, expenses, '', true);
-
-  addRow('PNL', labels.secSummaryPnl, labels.addOtherIncome, otherIncome);
-  addRow('PNL', labels.secSummaryPnl, labels.lessOpEx, -expenses);
-  addRow('PNL', labels.secSummaryPnl, labels.netProfit, netProfit, '', true);
+  addRow('PNL', labels.secOpEx, labels.netProfit, netProfit, '', true);
 
   addRow('BALANCE_SHEET', labels.secNonCurrentAssets, tL('Tanah dan bangunan'), land);
   addRow('BALANCE_SHEET', labels.secNonCurrentAssets, tL('Loji dan jentera'), equipment);

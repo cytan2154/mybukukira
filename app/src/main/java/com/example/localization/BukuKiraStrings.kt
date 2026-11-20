@@ -107,6 +107,12 @@ object BukuKiraStrings {
     }
   }
 
+  fun formatAmount(amount: Double): String {
+    val symbols = DecimalFormatSymbols(Locale.US)
+    val df = DecimalFormat("#,##0.00", symbols)
+    return if (amount < 0) "-${df.format(-amount)}" else df.format(amount)
+  }
+
   fun formatCurrency(currency: String, amount: Double): String {
     val symbols = DecimalFormatSymbols(Locale.US)
     val df = DecimalFormat("#,##0.00", symbols)
@@ -160,7 +166,17 @@ object BukuKiraStrings {
       balanced = "SEIMBANG",
       unbalanced = "TIDAK SEIMBANG",
       disposalNote = "Amaun bersih sahaja: hasil jualan ditolak kos asal aset direkodkan; tiada susut nilai automatik.",
-      disclaimer = "Penafian: Penyata dan lejar BukuKira dijana sebagai alat bantuan rekod perniagaan dan semakan pengurusan dalaman sahaja; ia bukan audit bertauliah atau pensijilan berkanun LHDN/SSM."
+      disclaimer = "Penafian: Penyata dan lejar BukuKira dijana sebagai alat bantuan rekod perniagaan dan semakan pengurusan dalaman sahaja; ia bukan audit bertauliah atau pensijilan berkanun LHDN/SSM.",
+      ledgerAccountPrefix = "Akaun",
+      ledgerColDate = "Tarikh",
+      ledgerColDetails = "Butiran",
+      ledgerColDebit = "Debit",
+      ledgerColCredit = "Kredit",
+      ledgerColBalance = "Baki",
+      ledgerTotal = "Jumlah",
+      preparedCertifiedBy = "Disediakan dan disahkan oleh pemilik:",
+      ownerIdNoLabel = "No. KP / ID:",
+      ownerSignatureLabel = "Tandatangan pemilik"
     )
     LanguageCode.EN -> StatementLabelSet(
       pnlTitle = "PROFIT AND LOSS STATEMENT",
@@ -204,7 +220,17 @@ object BukuKiraStrings {
       balanced = "BALANCED",
       unbalanced = "UNBALANCED",
       disposalNote = "Net gain/loss only: sale proceeds minus recorded asset cost; no automatic depreciation.",
-      disclaimer = "Disclaimer: BukuKira statements and ledgers are internal bookkeeping aids only and do not constitute certified statutory or tax filings (LHDN/SSM)."
+      disclaimer = "Disclaimer: BukuKira statements and ledgers are internal bookkeeping aids only and do not constitute certified statutory or tax filings (LHDN/SSM).",
+      ledgerAccountPrefix = "Account",
+      ledgerColDate = "Date",
+      ledgerColDetails = "Details",
+      ledgerColDebit = "Debit",
+      ledgerColCredit = "Credit",
+      ledgerColBalance = "Balance",
+      ledgerTotal = "Total",
+      preparedCertifiedBy = "Prepared and certified by the owner:",
+      ownerIdNoLabel = "ID No.:",
+      ownerSignatureLabel = "Owner's signature"
     )
     LanguageCode.ZH -> StatementLabelSet(
       pnlTitle = "损益表",
@@ -248,7 +274,17 @@ object BukuKiraStrings {
       balanced = "平衡",
       unbalanced = "不平衡",
       disposalNote = "仅计净收益/损失：出售收入减去记录成本；不含自动折旧。",
-      disclaimer = "免责声明：BukuKira 报表和总账仅作为内部记账辅助工具，不构成法定审计或税务认证文件（LHDN/SSM）。"
+      disclaimer = "免责声明：BukuKira 报表和总账仅作为内部记账辅助工具，不构成法定审计或税务认证文件（LHDN/SSM）。",
+      ledgerAccountPrefix = "账户",
+      ledgerColDate = "日期",
+      ledgerColDetails = "摘要",
+      ledgerColDebit = "借方",
+      ledgerColCredit = "贷方",
+      ledgerColBalance = "余额",
+      ledgerTotal = "合计",
+      preparedCertifiedBy = "由业主编制并核证：",
+      ownerIdNoLabel = "身份证号：",
+      ownerSignatureLabel = "业主签名"
     )
   }
 
@@ -294,7 +330,17 @@ object BukuKiraStrings {
     val balanced: String,
     val unbalanced: String,
     val disposalNote: String,
-    val disclaimer: String
+    val disclaimer: String,
+    val ledgerAccountPrefix: String,
+    val ledgerColDate: String,
+    val ledgerColDetails: String,
+    val ledgerColDebit: String,
+    val ledgerColCredit: String,
+    val ledgerColBalance: String,
+    val ledgerTotal: String,
+    val preparedCertifiedBy: String,
+    val ownerIdNoLabel: String,
+    val ownerSignatureLabel: String
   )
 
   fun ui(lang: LanguageCode): UiStrings = when (lang) {
@@ -345,7 +391,29 @@ object BukuKiraStrings {
       signOut = "Log Keluar",
       synced = "Disegerak",
       pendingSync = "Menunggu Segerak",
-      readOnlyLicence = "Lesen Tamat / Digantung (Baca Sahaja)"
+      readOnlyLicence = "Lesen Tamat / Digantung (Baca Sahaja)",
+      creditSectionTitle = "Jualan & Belian Kredit",
+      creditSectionSubtitle = "Rekod jualan yang belum dibayar oleh pelanggan dan belian yang belum dibayar kepada pembekal. Rekod ini tidak menjejaskan baki tunai atau bank sehingga bayaran diterima atau dibuat.",
+      creditSaleSub = "Pelanggan berhutang",
+      creditPurchaseSub = "Perniagaan berhutang",
+      creditNoteSub = "Pulangan / diskaun pelanggan",
+      debitNoteSub = "Pulang stok kepada pembekal",
+      totalCreditSalesLabel = "Jumlah Jualan Kredit",
+      totalCreditPurchasesLabel = "Jumlah Belian Kredit",
+      creditSaleModalSub = "Rekod jualan yang belum dibayar oleh pelanggan",
+      creditPurchaseModalSub = "Rekod belian yang belum dibayar kepada pembekal",
+      creditNoteModalSub = "Rekod pulangan pelanggan atau diskaun invois",
+      debitNoteModalSub = "Rekod pulangan stok/aset kepada pembekal",
+      customerNameLabel = "Nama Pelanggan",
+      supplierNameLabel = "Nama Pembekal",
+      invoiceBillLabel = "No. Invois / Bil",
+      creditAmountLabel = "Jumlah",
+      detailsNoteOptionalLabel = "Butiran / Nota (Pilihan)",
+      creditNotePlaceholder = "cth: Barang dibekalkan untuk bulan ini",
+      creditBalanceNotice = "Rekod ini tidak menjejaskan baki tunai/bank. Untuk penyelesaian akan datang, gunakan Bayaran Penghutang di Duit Masuk, atau Bayaran Pemiutang Dagangan (stok) / Pemiutang Lain (aset) di Duit Keluar.",
+      saveCreditRecord = "Simpan Rekod Kredit",
+      moneyInSub = "Jualan, modal, penghutang",
+      moneyOutSub = "Stok, belanja, aset"
     )
     LanguageCode.EN -> UiStrings(
       navHome = "Home",
@@ -394,7 +462,29 @@ object BukuKiraStrings {
       signOut = "Sign Out",
       synced = "Synced",
       pendingSync = "Pending Sync",
-      readOnlyLicence = "Licence Expired / Suspended (Read-Only)"
+      readOnlyLicence = "Licence Expired / Suspended (Read-Only)",
+      creditSectionTitle = "Credit Sales & Purchases",
+      creditSectionSubtitle = "Record unpaid sales from customers and unpaid purchases to suppliers. These records do not affect cash or bank balances until payment is received or made.",
+      creditSaleSub = "Customer owes",
+      creditPurchaseSub = "Business owes",
+      creditNoteSub = "Customer return/discount",
+      debitNoteSub = "Return stock to supplier",
+      totalCreditSalesLabel = "Total Credit Sales",
+      totalCreditPurchasesLabel = "Total Credit Purchases",
+      creditSaleModalSub = "Record sales not yet paid by customers",
+      creditPurchaseModalSub = "Record purchases not yet paid to suppliers",
+      creditNoteModalSub = "Record customer return or invoice discount",
+      debitNoteModalSub = "Record stock or asset return to supplier",
+      customerNameLabel = "Customer Name",
+      supplierNameLabel = "Supplier Name",
+      invoiceBillLabel = "Invoice / Bill No.",
+      creditAmountLabel = "Amount",
+      detailsNoteOptionalLabel = "Details / Note (Optional)",
+      creditNotePlaceholder = "e.g., Goods supplied for this month",
+      creditBalanceNotice = "This record does not affect cash/bank balances. For future settlement, use Debtor Payment in Money In, or Trade Creditor Payment (stock) / Other Creditor Payment (asset) in Money Out.",
+      saveCreditRecord = "Save Credit Record",
+      moneyInSub = "Sales, capital, debtors",
+      moneyOutSub = "Stock, expenses, assets"
     )
     LanguageCode.ZH -> UiStrings(
       navHome = "主页",
@@ -443,7 +533,29 @@ object BukuKiraStrings {
       signOut = "退出登录",
       synced = "已同步",
       pendingSync = "待同步",
-      readOnlyLicence = "许可证已过期或暂停（只读）"
+      readOnlyLicence = "许可证已过期或暂停（只读）",
+      creditSectionTitle = "赊销与赊购",
+      creditSectionSubtitle = "记录客户尚未付款的销售及尚未支付给供应商的采购。在收款或付款前，这些记录不会影响现金或银行余额。",
+      creditSaleSub = "客户欠款",
+      creditPurchaseSub = "企业欠款",
+      creditNoteSub = "客户退货/折扣",
+      debitNoteSub = "退货给供应商",
+      totalCreditSalesLabel = "赊销总额",
+      totalCreditPurchasesLabel = "赊购总额",
+      creditSaleModalSub = "记录尚未收到客户付款的销售",
+      creditPurchaseModalSub = "记录尚未支付给供应商的采购",
+      creditNoteModalSub = "记录客户退货或发票折扣",
+      debitNoteModalSub = "记录退回给供应商的货品或资产",
+      customerNameLabel = "客户名称",
+      supplierNameLabel = "供应商名称",
+      invoiceBillLabel = "发票 / 账单号",
+      creditAmountLabel = "金额",
+      detailsNoteOptionalLabel = "明细 / 备注（可选）",
+      creditNotePlaceholder = "例如：本月供应货品",
+      creditBalanceNotice = "此记录不会影响现金/银行余额。日后结清时，请在收款中使用“应收账款收款”，或在付款中使用“应付账款付款”（货品）/“其他应付款付款”（资产）。",
+      saveCreditRecord = "保存赊账记录",
+      moneyInSub = "销售、资本、收款",
+      moneyOutSub = "采购、费用、资产"
     )
   }
 
@@ -494,6 +606,28 @@ object BukuKiraStrings {
     val signOut: String,
     val synced: String,
     val pendingSync: String,
-    val readOnlyLicence: String
+    val readOnlyLicence: String,
+    val creditSectionTitle: String,
+    val creditSectionSubtitle: String,
+    val creditSaleSub: String,
+    val creditPurchaseSub: String,
+    val creditNoteSub: String,
+    val debitNoteSub: String,
+    val totalCreditSalesLabel: String,
+    val totalCreditPurchasesLabel: String,
+    val creditSaleModalSub: String,
+    val creditPurchaseModalSub: String,
+    val creditNoteModalSub: String,
+    val debitNoteModalSub: String,
+    val customerNameLabel: String,
+    val supplierNameLabel: String,
+    val invoiceBillLabel: String,
+    val creditAmountLabel: String,
+    val detailsNoteOptionalLabel: String,
+    val creditNotePlaceholder: String,
+    val creditBalanceNotice: String,
+    val saveCreditRecord: String,
+    val moneyInSub: String,
+    val moneyOutSub: String
   )
 }

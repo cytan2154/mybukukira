@@ -5,7 +5,7 @@ import {
   localizedCategoryLabel,
   localizedCategorySub
 } from './accounting-catalog.js';
-import { formatCurrency, formatNumber, uiStrings } from './strings.js';
+import { formatCurrency, formatNumber, statementLabels, uiStrings } from './strings.js';
 import { computeStatements, defaultBeginningBalances, getClosingStock } from './accounting-engine.js';
 import { evaluateBusinessAccess, getOrCreateInstallationId } from './license-gate.js';
 import {
@@ -41,7 +41,18 @@ const ICONS = {
   undo: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>`,
   asset: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>`,
   wallet: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M21 18v1c0 1.1-.9 2-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14c1.1 0 2 .9 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`,
-  receipt: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.5 3.5 18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/></svg>`
+  receipt: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.5 3.5 18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/></svg>`,
+  plusCircle: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>`,
+  minusCircle: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/></svg>`,
+  cart: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>`,
+  fileDollar: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm1 15h-2v1h-2v-1H9v-2h4v-1h-3c-.55 0-1-.45-1-1v-2c0-.55.45-1 1-1h1V9h2v1h2v2h-4v1h3c.55 0 1 .45 1 1v2c0 .55-.45 1-1 1zm-2-8V3.5L18.5 9H13z"/></svg>`,
+  fileRemove: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm1 14H9v-2h6v2zm-2-7V3.5L18.5 9H13z"/></svg>`,
+  fileReturn: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm1.5 14.5H13v-2h2.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-4.67l1.58 1.59L11 14.5 7 10.5l4-4 1.41 1.41L10.83 9.5h4.67c1.93 0 3.5 1.57 3.5 3.5s-1.57 3.5-3.5 3.5zM13 9V3.5L18.5 9H13z"/></svg>`,
+  pdf: `<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>`,
+  table: `<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 2v3H5V5h14zM5 19v-9h4v9H5zm6 0v-9h8v9h-8z"/></svg>`,
+  save: `<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/></svg>`,
+  restore: `<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>`,
+  edit: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>`
 };
 
 function categoryIconSvg(catId) {
@@ -754,26 +765,30 @@ function renderHomeTab(ws, stats, s, role, isOperational) {
     </div>
 
     <div class="grid-2">
-      <button class="btn btn-primary" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="IN">
-        + ${escapeHtml(s.addMoneyIn)}
+      <button class="home-action-box in" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="IN">
+        <span class="home-action-icon">${ICONS.plusCircle}</span>
+        <div>
+          <div class="home-action-title">${escapeHtml(s.moneyIn)}</div>
+          <div class="home-action-sub">${escapeHtml(s.moneyInSub)}</div>
+        </div>
       </button>
-      <button class="btn btn-coral" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="OUT">
-        - ${escapeHtml(s.addMoneyOut)}
+      <button class="home-action-box out" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="OUT">
+        <span class="home-action-icon">${ICONS.minusCircle}</span>
+        <div>
+          <div class="home-action-title">${escapeHtml(s.moneyOut)}</div>
+          <div class="home-action-sub">${escapeHtml(s.moneyOutSub)}</div>
+        </div>
       </button>
     </div>
 
     <div class="grid-2">
-      <div class="card metric-card">
-        <div class="metric-title">${escapeHtml(s.netProfitYear)} ${escapeHtml(state.selectedYear)}</div>
-        <div class="metric-value tabular ${stats.netProfit >= 0 ? 'text-emerald' : 'text-coral'}">
-          ${escapeHtml(formatCurrency(ws.currency, stats.netProfit))}
-        </div>
+      <div class="stat-box ${stats.netProfit >= 0 ? 'teal' : 'coral'}">
+        <div class="stat-box-title">${escapeHtml(s.netProfitYear)} ${escapeHtml(state.selectedYear)}</div>
+        <div class="stat-box-val tabular">${escapeHtml(formatCurrency(ws.currency, stats.netProfit))}</div>
       </div>
-      <div class="card metric-card">
-        <div class="metric-title">${escapeHtml(s.tradeDebtorsLabel)}</div>
-        <div class="metric-value tabular text-emerald">
-          ${escapeHtml(formatCurrency(ws.currency, stats.tradeDebtors))}
-        </div>
+      <div class="stat-box indigo">
+        <div class="stat-box-title">${escapeHtml(s.tradeDebtorsLabel)}</div>
+        <div class="stat-box-val tabular">${escapeHtml(formatCurrency(ws.currency, stats.tradeDebtors))}</div>
       </div>
     </div>
 
@@ -830,10 +845,15 @@ function renderRecordsTab(ws, s, role, isOperational) {
   return `
     <div class="row-between">
       <h2 style="margin:0;font-size:20px;">${escapeHtml(s.navRecords)} (${escapeHtml(state.selectedYear)})</h2>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-primary btn-sm" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="IN">+ ${escapeHtml(s.moneyIn)}</button>
-        <button class="btn btn-coral btn-sm" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="OUT">- ${escapeHtml(s.moneyOut)}</button>
-      </div>
+    </div>
+
+    <div class="grid-2">
+      <button class="btn btn-primary" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="IN">
+        + ${escapeHtml(s.moneyIn)}
+      </button>
+      <button class="btn btn-coral" ${isOperational ? '' : 'disabled'} data-action="open-tx-modal" data-tx-type="OUT">
+        - ${escapeHtml(s.moneyOut)}
+      </button>
     </div>
 
     <input
@@ -843,16 +863,16 @@ function renderRecordsTab(ws, s, role, isOperational) {
       placeholder="${escapeHtml(s.searchPlaceholder)}"
     />
 
-    <div class="chip-row">
+    <div class="filter-box-row">
       ${[
-        ['ALL', s.filterAll],
-        ['IN', s.filterIn],
-        ['OUT', s.filterOut],
-        ['CREDIT', s.filterCredit]
+        ['ALL', s.filterAll, 'all'],
+        ['IN', s.filterIn, 'in'],
+        ['OUT', s.filterOut, 'out'],
+        ['CREDIT', s.filterCredit, 'credit']
       ]
         .map(
-          ([k, label]) =>
-            `<button class="chip ${state.recordsFilter === k ? 'active' : ''}" data-action="set-records-filter" data-filter="${k}">${escapeHtml(label)}</button>`
+          ([k, label, cls]) =>
+            `<button class="filter-box ${cls} ${state.recordsFilter === k ? 'active' : ''}" data-action="set-records-filter" data-filter="${k}">${escapeHtml(label)}</button>`
         )
         .join('')}
     </div>
@@ -884,31 +904,70 @@ function renderCreditTab(ws, stats, s, role, isOperational) {
       String(t.date || '').startsWith(state.selectedYear) &&
       ['CREDIT_SALE', 'CREDIT_PURCHASE', 'CREDIT_NOTE', 'DEBIT_NOTE'].includes(t.type)
   );
+  const totalCreditSalesYear = creditTxs
+    .filter((t) => t.type === 'CREDIT_SALE')
+    .reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
+  const totalCreditPurchasesYear = creditTxs
+    .filter((t) => t.type === 'CREDIT_PURCHASE')
+    .reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
 
   return `
-    <h2 style="margin:0;font-size:20px;">${escapeHtml(s.creditTitle)}</h2>
-
-    <div class="grid-2">
-      <div class="card metric-card">
-        <div class="metric-title">${escapeHtml(s.tradeDebtorsLabel)}</div>
-        <div class="metric-value tabular text-emerald">${escapeHtml(formatCurrency(ws.currency, stats.tradeDebtors))}</div>
+    <div class="credit-hero-card">
+      <div>
+        <h2 class="credit-hero-title">${escapeHtml(s.creditSectionTitle)}</h2>
+        <p class="credit-hero-subtitle" style="margin-top:6px;">${escapeHtml(s.creditSectionSubtitle)}</p>
       </div>
-      <div class="card metric-card">
-        <div class="metric-title">${escapeHtml(s.tradeCreditorsLabel)}</div>
-        <div class="metric-value tabular text-coral">${escapeHtml(
-          formatCurrency(ws.currency, stats.tradeCreditors + stats.otherCreditors)
-        )}</div>
+
+      <div class="credit-tile-grid">
+        <button class="credit-tile teal" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="CREDIT_SALE">
+          <span class="credit-tile-icon">${ICONS.fileDollar}</span>
+          <div>
+            <div class="credit-tile-title">${escapeHtml(s.creditSale)}</div>
+            <div class="credit-tile-sub">${escapeHtml(s.creditSaleSub)}</div>
+          </div>
+        </button>
+
+        <button class="credit-tile orange" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="CREDIT_PURCHASE">
+          <span class="credit-tile-icon">${ICONS.cart}</span>
+          <div>
+            <div class="credit-tile-title">${escapeHtml(s.creditPurchase)}</div>
+            <div class="credit-tile-sub">${escapeHtml(s.creditPurchaseSub)}</div>
+          </div>
+        </button>
+
+        <button class="credit-tile indigo" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="CREDIT_NOTE">
+          <span class="credit-tile-icon">${ICONS.fileRemove}</span>
+          <div>
+            <div class="credit-tile-title">${escapeHtml(s.creditNote)}</div>
+            <div class="credit-tile-sub">${escapeHtml(s.creditNoteSub)}</div>
+          </div>
+        </button>
+
+        <button class="credit-tile pink" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="DEBIT_NOTE">
+          <span class="credit-tile-icon">${ICONS.fileReturn}</span>
+          <div>
+            <div class="credit-tile-title">${escapeHtml(s.debitNote)}</div>
+            <div class="credit-tile-sub">${escapeHtml(s.debitNoteSub)}</div>
+          </div>
+        </button>
       </div>
     </div>
 
     <div class="grid-2">
-      <button class="btn btn-tonal" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="CREDIT_SALE">${escapeHtml(s.creditSale)}</button>
-      <button class="btn btn-tonal" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="CREDIT_PURCHASE">${escapeHtml(s.creditPurchase)}</button>
-      <button class="btn btn-tonal" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="CREDIT_NOTE">${escapeHtml(s.creditNote)}</button>
-      <button class="btn btn-tonal" ${isOperational ? '' : 'disabled'} data-action="open-credit-modal" data-tx-type="DEBIT_NOTE">${escapeHtml(s.debitNote)}</button>
+      <div class="credit-summary-box teal">
+        <div class="credit-summary-label">${escapeHtml(s.totalCreditSalesLabel)}</div>
+        <div class="credit-summary-val tabular">${escapeHtml(formatCurrency(ws.currency, totalCreditSalesYear))}</div>
+        <div class="credit-summary-sub tabular">${escapeHtml(s.tradeDebtorsLabel)}: ${escapeHtml(formatCurrency(ws.currency, stats.tradeDebtors))}</div>
+      </div>
+
+      <div class="credit-summary-box orange">
+        <div class="credit-summary-label">${escapeHtml(s.totalCreditPurchasesLabel)}</div>
+        <div class="credit-summary-val tabular">${escapeHtml(formatCurrency(ws.currency, totalCreditPurchasesYear))}</div>
+        <div class="credit-summary-sub tabular">${escapeHtml(s.tradeCreditorsLabel)}: ${escapeHtml(formatCurrency(ws.currency, stats.tradeCreditors + stats.otherCreditors))}</div>
+      </div>
     </div>
 
-    <div style="font-weight:700;font-size:15px;">${escapeHtml(s.creditTitle)} (${escapeHtml(state.selectedYear)})</div>
+    <div style="font-weight:700;font-size:15px;margin-top:4px;">${escapeHtml(s.creditTitle)} (${escapeHtml(state.selectedYear)})</div>
 
     ${
       creditTxs.length === 0
@@ -933,13 +992,29 @@ function renderStatementsTab(ws, stats, s, role, isOperational) {
   const years = availableYears();
   const canEditAccounting = isOperational && (role === 'OWNER' || role === 'ACCOUNTANT');
   const closing = getClosingStock(Number.parseInt(state.selectedYear, 10) || 2026, ws.closingStockByYear, ws.beginningBalances);
+  const stmtLabels = statementLabels(state.language);
+  const ownerNameText = String(ws.ownerName || '').trim() || '-';
+  const ownerIdText = String(state.ownerPrivateInfo?.ownerIdNumber || '').trim();
+  const ownerSignatureCard = `
+    <div class="card owner-sign-card">
+      <div class="owner-sign-box">
+        <div class="owner-sign-left">
+          <div class="owner-sign-label">${escapeHtml(stmtLabels.preparedCertifiedBy)}</div>
+          <div class="owner-sign-name">${escapeHtml(ownerNameText)}</div>
+          ${ownerIdText ? `<div class="owner-sign-id">${escapeHtml(stmtLabels.ownerIdNoLabel)} ${escapeHtml(ownerIdText)}</div>` : ''}
+        </div>
+        <div class="owner-sign-right">
+          <div class="owner-sign-line"></div>
+          <div class="owner-sign-caption">${escapeHtml(stmtLabels.ownerSignatureLabel)}</div>
+        </div>
+      </div>
+    </div>
+  `;
 
   let stmtContent = '';
   if (state.statementTab === 'pnl' || state.statementTab === 'bs') {
     const targetType = state.statementTab === 'pnl' ? 'PNL' : 'BALANCE_SHEET';
-    const filtered = stats.rows.filter(
-      (r) => r.statementType === targetType || (targetType === 'BALANCE_SHEET' && r.statementType === 'CHECK')
-    );
+    const filtered = stats.rows.filter((r) => r.statementType === targetType);
     let lastSection = '';
     const rowsHtml = filtered
       .map((r) => {
@@ -960,7 +1035,7 @@ function renderStatementsTab(ws, stats, s, role, isOperational) {
         `;
       })
       .join('');
-    stmtContent = `<div class="card">${rowsHtml}</div>`;
+    stmtContent = `<div class="card">${rowsHtml}</div>${ownerSignatureCard}`;
   } else {
     const ledgerEntries = Object.entries(stats.ledgers || {});
     stmtContent =
@@ -972,28 +1047,42 @@ function renderStatementsTab(ws, stats, s, role, isOperational) {
               let cr = 0;
               const trs = entries
                 .map((e) => {
-                  dr += Number(e.debit) || 0;
-                  cr += Number(e.credit) || 0;
+                  const drVal = Number(e.debit) || 0;
+                  const crVal = Number(e.credit) || 0;
+                  const balVal = Number(e.balance) || 0;
+                  dr += drVal;
+                  cr += crVal;
                   return `<tr>
-                    <td>${escapeHtml(e.date)}</td>
+                    <td class="ledger-date">${escapeHtml(e.date)}</td>
                     <td>${escapeHtml(e.description)}</td>
-                    <td class="num tabular">${e.debit > 0 ? escapeHtml(formatNumber(e.debit)) : ''}</td>
-                    <td class="num tabular">${e.credit > 0 ? escapeHtml(formatNumber(e.credit)) : ''}</td>
+                    <td class="num tabular">${drVal > 0 ? escapeHtml(formatNumber(drVal)) : '-'}</td>
+                    <td class="num tabular">${crVal > 0 ? escapeHtml(formatNumber(crVal)) : '-'}</td>
+                    <td class="num tabular ledger-bal">${escapeHtml(formatNumber(balVal))}</td>
                   </tr>`;
                 })
                 .join('');
+              const closingBal = entries.length > 0 ? Number(entries[entries.length - 1].balance) || 0 : 0;
               return `
                 <div class="card ledger-card">
-                  <div style="font-weight:700;margin-bottom:8px;color:var(--emerald);">${escapeHtml(acc)}</div>
+                  <div class="ledger-account-heading">${escapeHtml(stmtLabels.ledgerAccountPrefix)}: ${escapeHtml(acc)}</div>
                   <div style="overflow-x:auto;">
                     <table class="ledger-table">
-                      <thead><tr><th>Date</th><th>Description</th><th class="num">Dr</th><th class="num">Cr</th></tr></thead>
+                      <thead>
+                        <tr>
+                          <th class="ledger-date">${escapeHtml(stmtLabels.ledgerColDate)}</th>
+                          <th>${escapeHtml(stmtLabels.ledgerColDetails)}</th>
+                          <th class="num">${escapeHtml(stmtLabels.ledgerColDebit)}</th>
+                          <th class="num">${escapeHtml(stmtLabels.ledgerColCredit)}</th>
+                          <th class="num">${escapeHtml(stmtLabels.ledgerColBalance)}</th>
+                        </tr>
+                      </thead>
                       <tbody>
                         ${trs}
-                        <tr style="font-weight:700;background:var(--emerald-soft);">
-                          <td></td><td>Total</td>
+                        <tr class="ledger-total-row">
+                          <td></td><td>${escapeHtml(stmtLabels.ledgerTotal)}</td>
                           <td class="num tabular">${escapeHtml(formatNumber(dr))}</td>
                           <td class="num tabular">${escapeHtml(formatNumber(cr))}</td>
+                          <td class="num tabular">${escapeHtml(formatNumber(closingBal))}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1022,20 +1111,32 @@ function renderStatementsTab(ws, stats, s, role, isOperational) {
     </div>
 
     <div class="grid-2">
-      <button class="btn btn-outline btn-sm" ${canEditAccounting ? '' : 'disabled'} data-action="open-closing-stock">
-        ${escapeHtml(s.closingStock)}: ${escapeHtml(formatCurrency(ws.currency, closing))}
+      <button class="stmt-action-box amber-soft" ${canEditAccounting ? '' : 'disabled'} data-action="open-closing-stock">
+        ${ICONS.box}
+        <span>${escapeHtml(s.closingStock)}: ${escapeHtml(formatCurrency(ws.currency, closing))}</span>
       </button>
-      <button class="btn btn-outline btn-sm" ${canEditAccounting ? '' : 'disabled'} data-action="open-beginning-balances">
-        ${escapeHtml(s.beginningBalances)}
+      <button class="stmt-action-box indigo-soft" ${canEditAccounting ? '' : 'disabled'} data-action="open-beginning-balances">
+        ${ICONS.edit}
+        <span>${escapeHtml(s.beginningBalances)}</span>
       </button>
     </div>
 
     <div class="grid-2">
-      <button class="btn btn-primary btn-sm" data-action="export-pdf">${escapeHtml(s.exportPdf)}</button>
-      <button class="btn btn-tonal btn-sm" data-action="export-csv">${escapeHtml(s.exportCsv)}</button>
-      <button class="btn btn-outline btn-sm" data-action="backup-json">${escapeHtml(s.backupJson)}</button>
-      <label class="btn btn-outline btn-sm" style="margin:0;${isOperational ? '' : 'opacity:0.45;pointer-events:none;'}">
-        ${escapeHtml(s.restoreJson)}
+      <button class="stmt-action-box emerald" data-action="export-pdf">
+        ${ICONS.pdf}
+        <span>${escapeHtml(s.exportPdf)}</span>
+      </button>
+      <button class="stmt-action-box teal" data-action="export-csv">
+        ${ICONS.table}
+        <span>${escapeHtml(s.exportCsv)}</span>
+      </button>
+      <button class="stmt-action-box indigo" data-action="backup-json">
+        ${ICONS.save}
+        <span>${escapeHtml(s.backupJson)}</span>
+      </button>
+      <label class="stmt-action-box orange" style="margin:0;cursor:pointer;${isOperational ? '' : 'opacity:0.45;pointer-events:none;'}">
+        ${ICONS.restore}
+        <span>${escapeHtml(s.restoreJson)}</span>
         <input type="file" id="restore-json-file" accept=".json,application/json" style="display:none;" />
       </label>
     </div>
@@ -1086,7 +1187,7 @@ function renderWorkspaceShell() {
             <div class="brand-texts">
               <div class="brand-title">${escapeHtml(ws.businessName || 'BukuKira')}</div>
               <div class="brand-subtitle">
-                ${escapeHtml(state.licence?.plan || 'TRIAL')} &bull; ${escapeHtml(role)} &bull; FY ${escapeHtml(state.selectedYear)}
+                ${escapeHtml(ws.ownerName || role)} &bull; ${escapeHtml(state.selectedYear)}
               </div>
             </div>
           </div>
@@ -1270,6 +1371,7 @@ function renderModal() {
   } else if (m.type === 'credit') {
     const txType = m.txType;
     const selectedOpt = m.purchaseOptId || 'credit_purchase';
+    const isSupplier = txType === 'CREDIT_PURCHASE' || txType === 'DEBIT_NOTE';
     title =
       txType === 'CREDIT_SALE'
         ? s.creditSale
@@ -1278,35 +1380,83 @@ function renderModal() {
           : txType === 'CREDIT_NOTE'
             ? s.creditNote
             : s.debitNote;
-    content = `
-      <form id="credit-form" style="display:flex;flex-direction:column;gap:10px;">
-        ${
-          txType === 'CREDIT_PURCHASE'
-            ? `
-          <div class="field">
-            <label>Item Belian Kredit</label>
-            <div class="chip-row">
-              ${CREDIT_PURCHASE_OPTIONS.map((opt) => {
-                const lbl = lang === 'en' ? opt.labelEn : lang === 'zh' ? opt.labelZh : opt.labelMs;
-                return `<button type="button" class="chip ${opt.id === selectedOpt ? 'active' : ''}" data-action="modal-credit-opt" data-opt-id="${opt.id}">${escapeHtml(lbl)}</button>`;
-              }).join('')}
+    const subtitle =
+      txType === 'CREDIT_SALE'
+        ? s.creditSaleModalSub
+        : txType === 'CREDIT_PURCHASE'
+          ? s.creditPurchaseModalSub
+          : txType === 'CREDIT_NOTE'
+            ? s.creditNoteModalSub
+            : s.debitNoteModalSub;
+    const partyLabel = isSupplier ? s.supplierNameLabel : s.customerNameLabel;
+
+    return `
+      <div class="modal-backdrop" data-action="backdrop-close">
+        <div class="modal-sheet">
+          <div class="modal-header" style="border-bottom:none;padding-bottom:6px;align-items:flex-start;">
+            <div>
+              <div class="modal-title" style="font-size:20px;">${escapeHtml(title)}</div>
+              <div class="credit-modal-sub">${escapeHtml(subtitle)}</div>
             </div>
+            <button type="button" class="icon-btn" data-action="close-modal" aria-label="Close" style="background:var(--bg);border-radius:50%;min-width:38px;min-height:38px;">${ICONS.close}</button>
           </div>
-        `
-            : ''
-        }
-        <div class="field"><label>Nama Pelanggan / Pembekal</label><input class="input" id="cr-party" maxlength="120" /></div>
-        <div class="field"><label>No. Invois / Bil / Nota</label><input class="input" id="cr-invoice" maxlength="60" /></div>
-        <div class="grid-2">
-          <div class="field"><label>Jumlah (${escapeHtml(ws.currency)}) *</label><input class="input" id="cr-amount" type="number" step="0.01" min="0.01" required /></div>
-          <div class="field"><label>Tarikh *</label><input class="input" id="cr-date" type="date" value="${todayIso()}" required /></div>
+          <div class="modal-body" data-modal-type="${escapeHtml(m.type)}" style="padding-top:10px;">
+            <form id="credit-form" style="display:flex;flex-direction:column;gap:12px;">
+              ${
+                txType === 'CREDIT_PURCHASE'
+                  ? `
+                <div class="field">
+                  <label>Item Belian Kredit</label>
+                  <div class="chip-row">
+                    ${CREDIT_PURCHASE_OPTIONS.map((opt) => {
+                      const lbl = lang === 'en' ? opt.labelEn : lang === 'zh' ? opt.labelZh : opt.labelMs;
+                      return `<button type="button" class="chip ${opt.id === selectedOpt ? 'active' : ''}" data-action="modal-credit-opt" data-opt-id="${opt.id}">${escapeHtml(lbl)}</button>`;
+                    }).join('')}
+                  </div>
+                </div>
+              `
+                  : ''
+              }
+
+              <div class="field">
+                <label>${escapeHtml(partyLabel)}</label>
+                <input class="input" id="cr-party" placeholder="${escapeHtml(partyLabel)}" maxlength="120" style="border:2px solid var(--emerald-bright);" />
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>${escapeHtml(lang === 'en' ? 'Date' : lang === 'zh' ? '日期' : 'Tarikh')}</label>
+                  <input class="input" id="cr-date" type="date" value="${todayIso()}" required />
+                </div>
+                <div class="field">
+                  <label>${escapeHtml(s.invoiceBillLabel)}</label>
+                  <input class="input" id="cr-invoice" placeholder="INV-001" maxlength="60" />
+                </div>
+              </div>
+
+              <div class="field">
+                <label>${escapeHtml(s.creditAmountLabel)} (${escapeHtml(ws.currency)})</label>
+                <div class="credit-amount-box">
+                  <input class="credit-amount-input" id="cr-amount" type="number" step="0.01" min="0.01" placeholder="0.00" required />
+                </div>
+              </div>
+
+              <div class="field">
+                <label>${escapeHtml(s.detailsNoteOptionalLabel)}</label>
+                <textarea class="textarea" id="cr-note" placeholder="${escapeHtml(s.creditNotePlaceholder)}" maxlength="500"></textarea>
+              </div>
+
+              <div class="credit-notice-amber">
+                ${s.creditBalanceNotice}
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-full" style="min-height:52px;font-size:16px;font-weight:800;border-radius:14px;">
+                ${escapeHtml(s.saveCreditRecord)}
+              </button>
+            </form>
+          </div>
         </div>
-        <div class="field"><label>Nota</label><input class="input" id="cr-note" maxlength="500" /></div>
-        <div class="grid-2" style="margin-top:6px;">
-          <button type="button" class="btn btn-outline" data-action="close-modal">${escapeHtml(s.cancel)}</button>
-          <button type="submit" class="btn btn-primary">${escapeHtml(s.save)}</button>
-        </div>
-      </form>
+      </div>
     `;
   } else if (m.type === 'closingStock') {
     const curVal = getClosingStock(Number.parseInt(state.selectedYear, 10) || 2026, ws.closingStockByYear, ws.beginningBalances);
@@ -1913,7 +2063,7 @@ document.addEventListener('click', async (e) => {
           state.selectedYear,
           state.language
         );
-        printStatementsPdf(ws, stats, state.language);
+        printStatementsPdf(ws, stats, state.language, state.ownerPrivateInfo);
         break;
       }
       case 'export-csv': {
