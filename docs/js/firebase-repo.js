@@ -31,7 +31,7 @@ import {
   clearIndexedDbPersistence
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
-import { FIRESTORE_DATABASE_ID, getActiveFirebaseConfig, isFirebaseWebConfigured } from './firebase-config.js';
+import { FIRESTORE_DATABASE_ID, getActiveFirebaseConfig, isFirebaseWebConfigured } from './firebase-config.js?v=4';
 import { sampleTransactions } from './accounting-catalog.js';
 import { defaultBeginningBalances } from './accounting-engine.js';
 import {

@@ -518,14 +518,18 @@ function renderPwaInstallBanner() {
 }
 
 function renderUnavailableScreen() {
+  const msg = state.errorMessage
+    ? state.errorMessage
+    : 'Aplikasi web belum sedia. Sila hubungi pentadbir sistem.';
   return `
     <div class="auth-wrap">
       <div class="card auth-card center-hero">
         <img src="./icons/icon-192.png" alt="BukuKira" />
         <h2 style="margin:4px 0 0;">BukuKira</h2>
         <div class="banner banner-error" style="width:100%;justify-content:center;">
-          <span>Aplikasi web belum sedia. Sila hubungi pentadbir sistem.</span>
+          <span>${escapeHtml(msg)}</span>
         </div>
+        <button class="btn btn-outline btn-full btn-sm" data-action="retry-boot">Cuba Semula / Muat Semula</button>
       </div>
     </div>
   `;
@@ -1651,6 +1655,15 @@ document.addEventListener('click', async (e) => {
   const action = target.getAttribute('data-action');
   try {
     switch (action) {
+      case 'retry-boot':
+        if ('caches' in window) {
+          caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).finally(() => {
+            window.location.reload();
+          });
+        } else {
+          window.location.reload();
+        }
+        break;
       case 'backdrop-close':
         if (e.target === target) {
           state.modal = null;
@@ -2107,9 +2120,18 @@ window.addEventListener('appinstalled', () => {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => {
-      console.warn('Service worker registration failed:', err?.message || err);
+    let reloadingOnSwUpdate = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloadingOnSwUpdate) return;
+      reloadingOnSwUpdate = true;
+      window.location.reload();
     });
+    navigator.serviceWorker
+      .register('./sw.js', { updateViaCache: 'none' })
+      .then((reg) => reg.update().catch(() => {}))
+      .catch((err) => {
+        console.warn('Service worker registration failed:', err?.message || err);
+      });
   });
 }
 

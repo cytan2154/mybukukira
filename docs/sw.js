@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bukukira-pwa-v3';
+const CACHE_NAME = 'bukukira-pwa-v4';
 const APP_SHELL = [
   './',
   './index.html',
@@ -47,23 +47,38 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-first for HTML navigation so app updates propagate quickly, with offline cache fallback
-  if (req.mode === 'navigate') {
+  // Network-first for HTML navigation and JS/CSS/manifest so config & app updates take effect immediately
+  const isCodeOrDoc =
+    req.mode === 'navigate' ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.html') ||
+    url.pathname.endsWith('.webmanifest');
+
+  if (isCodeOrDoc) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then((cache) =>
+              cache.put(req.mode === 'navigate' ? './index.html' : req, copy)
+            );
+          }
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() =>
+          caches.match(req.mode === 'navigate' ? './index.html' : req, {
+            ignoreSearch: true
+          })
+        )
     );
     return;
   }
 
-  // Cache-first for local static assets & ES modules
+  // Cache-first for static icons & images
   event.respondWith(
-    caches.match(req).then((cached) => {
+    caches.match(req, { ignoreSearch: true }).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
         if (res && res.status === 200) {
