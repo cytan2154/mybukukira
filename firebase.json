@@ -1,0 +1,20 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-android-bukukira-4cf4342e-65eb-431d-b64e-10c2cb4d2180",
+      "rules": "firestore.rules"
+    }
+  ],
+  "functions": {
+    "source": "functions"
+  },
+  "emulators": {
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8085
+    },
+    "ui": {
+      "enabled": false
+    }
+  }
+}

@@ -1,0 +1,466 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated user profile and language preference.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID matching the document ID."
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address from Google Sign-In."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name for the user."
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "enum": ["ms", "en", "zh"],
+          "description": "Selected UI and statement language code."
+        },
+        "activeBusinessId": {
+          "type": "string",
+          "description": "Optional active business workspace ID."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["userId", "email", "displayName", "preferredLanguage", "createdAt", "updatedAt"]
+    },
+    "BusinessLicence": {
+      "title": "BusinessLicence",
+      "description": "Commercial BukuKira licence entitlement controlling status, plan, expiry, and device limits.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "memberUids": {
+          "type": "array",
+          "description": "Bounded list of authorized workspace member UIDs."
+        },
+        "licenceKey": {
+          "type": "string",
+          "description": "Commercial licence key string."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "SUSPENDED", "EXPIRED"],
+          "description": "Current licence state."
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["TRIAL", "PRO", "ENTERPRISE"],
+          "description": "Commercial plan tier."
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Licence start timestamp."
+        },
+        "expiryDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Licence expiry timestamp."
+        },
+        "maxDevices": {
+          "type": "integer",
+          "description": "Maximum allowed registered devices."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["ownerId", "memberUids", "licenceKey", "status", "plan", "startDate", "expiryDate", "maxDevices", "createdAt", "updatedAt"]
+    },
+    "RegisteredDevice": {
+      "title": "RegisteredDevice",
+      "description": "Registered Android or browser installation bound to a licensed business.",
+      "type": "object",
+      "properties": {
+        "installationId": {
+          "type": "string",
+          "description": "Unique hex device installation identifier."
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the user operating this installation."
+        },
+        "deviceName": {
+          "type": "string",
+          "description": "Human-readable device label."
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["ANDROID", "WEB"],
+          "description": "Client platform."
+        },
+        "lastValidatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last validation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["installationId", "userId", "deviceName", "platform", "lastValidatedAt", "createdAt", "updatedAt"]
+    },
+    "BusinessWorkspace": {
+      "title": "BusinessWorkspace",
+      "description": "Shared SME bookkeeping workspace containing settings, roles, opening balances, and closing stock.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Immutable UID of the workspace owner."
+        },
+        "memberUids": {
+          "type": "array",
+          "description": "Bounded list of member UIDs (max 15)."
+        },
+        "memberRoles": {
+          "type": "object",
+          "description": "Map of member UID to role (OWNER, ACCOUNTANT, STAFF)."
+        },
+        "maxMembers": {
+          "type": "integer",
+          "description": "Configurable maximum team members allowed (1..15)."
+        },
+        "businessName": {
+          "type": "string",
+          "description": "Registered or trading business name."
+        },
+        "businessRegNo": {
+          "type": "string",
+          "description": "Business registration number (e.g. SSM)."
+        },
+        "businessType": {
+          "type": "string",
+          "description": "Business industry or category."
+        },
+        "businessAddress": {
+          "type": "string",
+          "description": "Business operating address."
+        },
+        "ownerName": {
+          "type": "string",
+          "description": "Owner full name shown on statements."
+        },
+        "currency": {
+          "type": "string",
+          "enum": ["RM", "SGD", "USD", "Rp"],
+          "description": "Display currency code."
+        },
+        "financialYear": {
+          "type": "string",
+          "description": "Active 4-digit financial year."
+        },
+        "closingStockByYear": {
+          "type": "object",
+          "description": "Map of 4-digit year string to year-end closing stock amount."
+        },
+        "beginningBalances": {
+          "type": "object",
+          "description": "Map of the 16 opening balance sheet account figures."
+        },
+        "lastInviteCode": {
+          "type": "string",
+          "description": "Optional last redeemed invite code used during member onboarding."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["ownerId", "memberUids", "memberRoles", "maxMembers", "businessName", "businessRegNo", "businessType", "businessAddress", "ownerName", "currency", "financialYear", "closingStockByYear", "beginningBalances", "createdAt", "updatedAt"]
+    },
+    "OwnerPrivateInfo": {
+      "title": "OwnerPrivateInfo",
+      "description": "Owner-only PII isolated from staff and accountant devices.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Owner UID matching parent workspace ownerId."
+        },
+        "ownerIdNumber": {
+          "type": "string",
+          "description": "Optional owner identification number."
+        },
+        "ownerPhone": {
+          "type": "string",
+          "description": "Optional owner phone number."
+        },
+        "ownerEmail": {
+          "type": "string",
+          "description": "Optional owner contact email."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["ownerId", "ownerIdNumber", "ownerPhone", "ownerEmail", "createdAt", "updatedAt"]
+    },
+    "BookkeepingTransaction": {
+      "title": "BookkeepingTransaction",
+      "description": "Individual cash, bank, credit, or asset disposal ledger entry.",
+      "type": "object",
+      "properties": {
+        "businessId": {
+          "type": "string",
+          "description": "Parent business workspace ID."
+        },
+        "createdByUid": {
+          "type": "string",
+          "description": "UID of the team member who created this transaction."
+        },
+        "memberUids": {
+          "type": "array",
+          "description": "Denormalized bounded list of workspace member UIDs."
+        },
+        "date": {
+          "type": "string",
+          "description": "Transaction date in yyyy-MM-dd format."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["IN", "OUT", "CREDIT_SALE", "CREDIT_PURCHASE", "CREDIT_NOTE", "DEBIT_NOTE"],
+          "description": "Transaction direction or credit note type."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "BukuKira accounting category identifier."
+        },
+        "method": {
+          "type": "string",
+          "enum": ["CASH", "BANK", "CREDIT"],
+          "description": "Settlement method."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Non-negative transaction amount."
+        },
+        "note": {
+          "type": "string",
+          "description": "Transaction description or note."
+        },
+        "partyName": {
+          "type": "string",
+          "description": "Optional customer or supplier name for credit records."
+        },
+        "invoiceNo": {
+          "type": "string",
+          "description": "Optional invoice or bill reference."
+        },
+        "disposalAssetType": {
+          "type": "string",
+          "enum": ["equipment", "landBuilding", "vehicles", "otherNonCurrent", "investments"],
+          "description": "Optional asset class when categoryId is asset_disposal."
+        },
+        "disposalAssetCost": {
+          "type": "number",
+          "description": "Optional original cost of disposed asset."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["businessId", "createdByUid", "memberUids", "date", "type", "categoryId", "method", "amount", "note", "createdAt", "updatedAt"]
+    },
+    "TeamInvite": {
+      "title": "TeamInvite",
+      "description": "Single-use expiring invite code for adding an accountant or staff member.",
+      "type": "object",
+      "properties": {
+        "businessId": {
+          "type": "string",
+          "description": "Target business workspace ID."
+        },
+        "businessName": {
+          "type": "string",
+          "description": "Display name of the business."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["ACCOUNTANT", "STAFF"],
+          "description": "Assigned role on redemption."
+        },
+        "createdByUid": {
+          "type": "string",
+          "description": "Owner UID who generated the invite."
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Expiration timestamp."
+        },
+        "redeemedByUid": {
+          "type": "string",
+          "description": "Optional UID of the user who redeemed the invite."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": ["businessId", "businessName", "role", "createdByUid", "expiresAt", "createdAt", "updatedAt"]
+    },
+    "MasterLicence": {
+      "title": "MasterLicence",
+      "description": "Server-only developer-issued master licence key registry managed via Cloud Functions / Admin SDK.",
+      "type": "object",
+      "properties": {
+        "licenceKey": {
+          "type": "string",
+          "description": "Unique commercial master licence key matching document ID."
+        },
+        "plan": {
+          "type": "string",
+          "enum": ["TRIAL", "PRO", "ENTERPRISE"],
+          "description": "Commercial plan tier granted upon redemption."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "SUSPENDED", "EXPIRED"],
+          "description": "Operational state of the master key."
+        },
+        "durationDays": {
+          "type": "integer",
+          "description": "Validity duration in days applied on activation."
+        },
+        "expiryDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Absolute expiration timestamp for redeeming or running under this key."
+        },
+        "maxDevices": {
+          "type": "integer",
+          "description": "Maximum allowed registered devices for the upgraded workspace."
+        },
+        "maxMembers": {
+          "type": "integer",
+          "description": "Maximum allowed team members for the upgraded workspace."
+        },
+        "maxClaims": {
+          "type": "integer",
+          "description": "Maximum number of businesses allowed to redeem this key."
+        },
+        "claimCount": {
+          "type": "integer",
+          "description": "Number of businesses that have redeemed this key."
+        },
+        "claimedByBusinessIds": {
+          "type": "array",
+          "description": "Business IDs that have redeemed this master key."
+        },
+        "assignedEmail": {
+          "type": "string",
+          "description": "Optional buyer Google email restriction."
+        },
+        "issuedByUid": {
+          "type": "string",
+          "description": "Developer admin UID that issued this key."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp."
+        }
+      },
+      "required": ["licenceKey", "plan", "status", "durationDays", "expiryDate", "maxDevices", "maxClaims", "claimCount", "claimedByBusinessIds", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user profile and preferred language."
+    },
+    "/licences/{businessId}": {
+      "schema": { "$ref": "#/entities/BusinessLicence" },
+      "description": "BukuKira commercial licence entitlement per business."
+    },
+    "/licences/{businessId}/devices/{installationId}": {
+      "schema": { "$ref": "#/entities/RegisteredDevice" },
+      "description": "Registered devices associated with a business licence."
+    },
+    "/businesses/{businessId}": {
+      "schema": { "$ref": "#/entities/BusinessWorkspace" },
+      "description": "Shared business workspace settings, team roles, opening balances, and closing stock."
+    },
+    "/businesses/{businessId}/private/ownerInfo": {
+      "schema": { "$ref": "#/entities/OwnerPrivateInfo" },
+      "description": "Owner-only PII isolated from staff and accountant members."
+    },
+    "/businesses/{businessId}/transactions/{txId}": {
+      "schema": { "$ref": "#/entities/BookkeepingTransaction" },
+      "description": "Business bookkeeping transactions with denormalized member access."
+    },
+    "/invites/{inviteCode}": {
+      "schema": { "$ref": "#/entities/TeamInvite" },
+      "description": "Single-use expiring invite codes for team onboarding."
+    },
+    "/masterLicences/{licenceKey}": {
+      "schema": { "$ref": "#/entities/MasterLicence" },
+      "description": "Server-only master licence key registry locked from all client reads/writes."
+    }
+  }
+}

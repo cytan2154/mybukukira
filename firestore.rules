@@ -1,0 +1,433 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened global primitives
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    function isValidMemberList(list, maxAllowed) {
+      return list is list &&
+             list.size() >= 1 &&
+             list.size() <= maxAllowed &&
+             list[0] is string;
+    }
+
+    // Parent lookups (only used on single-doc operations, NEVER inside allow list)
+    function businessDoc(businessId) {
+      return get(/databases/$(database)/documents/businesses/$(businessId)).data;
+    }
+
+    function licenceDoc(businessId) {
+      return get(/databases/$(database)/documents/licences/$(businessId)).data;
+    }
+
+    function isBusinessMember(businessId) {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+             request.auth.uid in businessDoc(businessId).memberUids;
+    }
+
+    function isBusinessOwner(businessId) {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+             businessDoc(businessId).ownerId == request.auth.uid;
+    }
+
+    function businessRole(businessId) {
+      return businessDoc(businessId).memberRoles[request.auth.uid];
+    }
+
+    function isOwnerOrAccountant(businessId) {
+      return isBusinessMember(businessId) &&
+             businessRole(businessId) in ['OWNER', 'ACCOUNTANT'];
+    }
+
+    function isLicenceActive(businessId) {
+      return exists(/databases/$(database)/documents/licences/$(businessId)) &&
+             licenceDoc(businessId).status == 'ACTIVE' &&
+             licenceDoc(businessId).expiryDate > request.time;
+    }
+
+    // 3. Schema validation helpers
+    function isValidUserProfile(data, userId) {
+      return data.userId is string && data.userId == userId &&
+             data.email is string && data.email.size() <= 200 &&
+             data.displayName is string && data.displayName.size() <= 120 &&
+             data.preferredLanguage is string && data.preferredLanguage in ['ms', 'en', 'zh'] &&
+             (!('activeBusinessId' in data) || (isValidId(data.activeBusinessId))) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidBusinessLicence(data) {
+      return data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+             isValidMemberList(data.memberUids, 15) &&
+             data.ownerId in data.memberUids &&
+             data.licenceKey is string && data.licenceKey.size() >= 6 && data.licenceKey.size() <= 64 &&
+             data.status is string && data.status in ['ACTIVE', 'SUSPENDED', 'EXPIRED'] &&
+             data.plan is string && data.plan in ['TRIAL', 'PRO', 'ENTERPRISE'] &&
+             data.startDate is timestamp &&
+             data.expiryDate is timestamp &&
+             data.maxDevices is int && data.maxDevices >= 1 && data.maxDevices <= 50 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidRegisteredDevice(data, installationId) {
+      return data.installationId is string && data.installationId == installationId &&
+             data.installationId.matches('^[a-f0-9]{16,64}$') &&
+             data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.deviceName is string && data.deviceName.size() >= 1 && data.deviceName.size() <= 100 &&
+             data.platform is string && data.platform in ['ANDROID', 'WEB'] &&
+             isValidTimestamp(data.lastValidatedAt) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidBusinessWorkspace(data) {
+      return data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+             data.maxMembers is int && data.maxMembers >= 1 && data.maxMembers <= 15 &&
+             isValidMemberList(data.memberUids, data.maxMembers) &&
+             data.ownerId in data.memberUids &&
+             data.memberRoles is map &&
+             data.memberRoles[data.ownerId] == 'OWNER' &&
+             data.memberRoles.keys().hasOnly(data.memberUids) &&
+             data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 120 &&
+             data.businessRegNo is string && data.businessRegNo.size() <= 60 &&
+             data.businessType is string && data.businessType.size() <= 100 &&
+             data.businessAddress is string && data.businessAddress.size() <= 250 &&
+             data.ownerName is string && data.ownerName.size() >= 1 && data.ownerName.size() <= 120 &&
+             data.currency is string && data.currency in ['RM', 'SGD', 'USD', 'Rp'] &&
+             data.financialYear is string && data.financialYear.matches('^[0-9]{4}$') &&
+             data.closingStockByYear is map && data.closingStockByYear.size() <= 40 &&
+             data.beginningBalances is map && data.beginningBalances.size() <= 24 &&
+             (!('lastInviteCode' in data) || isValidId(data.lastInviteCode)) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidOwnerPrivateInfo(data, businessOwnerId) {
+      return data.ownerId is string && data.ownerId == businessOwnerId &&
+             data.ownerIdNumber is string && data.ownerIdNumber.size() <= 40 &&
+             data.ownerPhone is string && data.ownerPhone.size() <= 40 &&
+             data.ownerEmail is string && data.ownerEmail.size() <= 120 &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidBookkeepingTransaction(data, businessId) {
+      return data.businessId is string && data.businessId == businessId &&
+             data.createdByUid is string && data.createdByUid.size() >= 1 && data.createdByUid.size() <= 128 &&
+             isValidMemberList(data.memberUids, 15) &&
+             data.date is string && data.date.size() == 10 && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+             data.type is string && data.type in ['IN', 'OUT', 'CREDIT_SALE', 'CREDIT_PURCHASE', 'CREDIT_NOTE', 'DEBIT_NOTE'] &&
+             data.categoryId is string && data.categoryId.size() >= 1 && data.categoryId.size() <= 60 &&
+             data.method is string && data.method in ['CASH', 'BANK', 'CREDIT'] &&
+             (data.amount is float || data.amount is int) && data.amount >= 0 &&
+             data.note is string && data.note.size() <= 500 &&
+             (!('partyName' in data) || (data.partyName is string && data.partyName.size() <= 120)) &&
+             (!('invoiceNo' in data) || (data.invoiceNo is string && data.invoiceNo.size() <= 60)) &&
+             (!('disposalAssetType' in data) || (data.disposalAssetType is string && data.disposalAssetType in ['equipment', 'landBuilding', 'vehicles', 'otherNonCurrent', 'investments'])) &&
+             (!('disposalAssetCost' in data) || ((data.disposalAssetCost is float || data.disposalAssetCost is int) && data.disposalAssetCost >= 0)) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidTeamInvite(data) {
+      return isValidId(data.businessId) &&
+             data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 120 &&
+             data.role is string && data.role in ['ACCOUNTANT', 'STAFF'] &&
+             data.createdByUid is string && data.createdByUid.size() >= 1 && data.createdByUid.size() <= 128 &&
+             data.expiresAt is timestamp &&
+             (!('redeemedByUid' in data) || (data.redeemedByUid is string && data.redeemedByUid.size() >= 1 && data.redeemedByUid.size() <= 128)) &&
+             isValidTimestamp(data.createdAt) &&
+             isValidTimestamp(data.updatedAt);
+    }
+
+    // 4. Collection rules
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll(['userId', 'email', 'displayName', 'preferredLanguage', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'email', 'displayName', 'preferredLanguage', 'activeBusinessId', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming(), userId);
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidUserProfile(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName', 'preferredLanguage', 'activeBusinessId', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    match /licences/{businessId} {
+      allow get: if isSignedIn() &&
+                    isValidId(businessId) &&
+                    (existing().ownerId == request.auth.uid || request.auth.uid in existing().memberUids);
+
+      // Client onboarding creates a validated TRIAL licence record bound to the owner's UID (max 30 days).
+      // Paid PRO / ENTERPRISE upgrades are written exclusively by Cloud Functions via masterLicences.
+      allow create: if isSignedIn() &&
+                       isValidId(businessId) &&
+                       incoming().ownerId == request.auth.uid &&
+                       incoming().keys().hasAll(['ownerId', 'memberUids', 'licenceKey', 'status', 'plan', 'startDate', 'expiryDate', 'maxDevices', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['ownerId', 'memberUids', 'licenceKey', 'status', 'plan', 'startDate', 'expiryDate', 'maxDevices', 'createdAt', 'updatedAt']) &&
+                       isValidBusinessLicence(incoming()) &&
+                       incoming().status == 'ACTIVE' &&
+                       incoming().plan == 'TRIAL' &&
+                       incoming().expiryDate > request.time &&
+                       incoming().expiryDate <= request.time + duration.value(30, 'd');
+
+      // Update allows either Owner managing memberUids (status/expiry/plan/maxDevices immutable from client)
+      // OR a valid invitee adding only themselves atomically alongside business membership update.
+      allow update: if isSignedIn() &&
+                       isValidId(businessId) &&
+                       isValidBusinessLicence(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().licenceKey == existing().licenceKey &&
+                       incoming().status == existing().status &&
+                       incoming().plan == existing().plan &&
+                       incoming().startDate == existing().startDate &&
+                       incoming().expiryDate == existing().expiryDate &&
+                       incoming().maxDevices == existing().maxDevices &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'updatedAt']) &&
+                       (
+                         existing().ownerId == request.auth.uid ||
+                         (
+                           !(request.auth.uid in existing().memberUids) &&
+                           request.auth.uid in incoming().memberUids &&
+                           incoming().memberUids.hasAll(existing().memberUids) &&
+                           incoming().memberUids.size() == existing().memberUids.size() + 1 &&
+                           request.auth.uid in getAfter(/databases/$(database)/documents/businesses/$(businessId)).data.memberUids
+                         )
+                       );
+
+      allow delete: if isSignedIn() && isValidId(businessId) && existing().ownerId == request.auth.uid;
+
+      match /devices/{installationId} {
+        allow get: if isValidId(businessId) && isValidId(installationId) && isBusinessMember(businessId);
+        allow list: if isValidId(businessId) && isBusinessMember(businessId);
+
+        allow create: if isValidId(businessId) &&
+                         isValidId(installationId) &&
+                         isBusinessMember(businessId) &&
+                         isLicenceActive(businessId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['installationId', 'userId', 'deviceName', 'platform', 'lastValidatedAt', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['installationId', 'userId', 'deviceName', 'platform', 'lastValidatedAt', 'createdAt', 'updatedAt']) &&
+                         isValidRegisteredDevice(incoming(), installationId);
+
+        allow update: if isValidId(businessId) &&
+                         isValidId(installationId) &&
+                         isBusinessMember(businessId) &&
+                         isLicenceActive(businessId) &&
+                         isValidRegisteredDevice(incoming(), installationId) &&
+                         incoming().installationId == existing().installationId &&
+                         incoming().createdAt == existing().createdAt &&
+                         (existing().userId == request.auth.uid || isBusinessOwner(businessId)) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['userId', 'deviceName', 'platform', 'lastValidatedAt', 'updatedAt']);
+
+        allow delete: if isValidId(businessId) &&
+                         isValidId(installationId) &&
+                         (isBusinessOwner(businessId) || (isBusinessMember(businessId) && existing().userId == request.auth.uid));
+      }
+    }
+
+    match /businesses/{businessId} {
+      // List query MUST filter with .whereArrayContains("memberUids", uid)
+      allow list: if isSignedIn() && request.auth.uid in existing().memberUids;
+
+      allow get: if isSignedIn() &&
+                    isValidId(businessId) &&
+                    request.auth.uid in existing().memberUids;
+
+      allow create: if isSignedIn() &&
+                       isValidId(businessId) &&
+                       incoming().ownerId == request.auth.uid &&
+                       incoming().keys().hasAll(['ownerId', 'memberUids', 'memberRoles', 'maxMembers', 'businessName', 'businessRegNo', 'businessType', 'businessAddress', 'ownerName', 'currency', 'financialYear', 'closingStockByYear', 'beginningBalances', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['ownerId', 'memberUids', 'memberRoles', 'maxMembers', 'businessName', 'businessRegNo', 'businessType', 'businessAddress', 'ownerName', 'currency', 'financialYear', 'closingStockByYear', 'beginningBalances', 'lastInviteCode', 'createdAt', 'updatedAt']) &&
+                       isValidBusinessWorkspace(incoming()) &&
+                       existsAfter(/databases/$(database)/documents/licences/$(businessId));
+
+      allow update: if isSignedIn() &&
+                       isValidId(businessId) &&
+                       isValidBusinessWorkspace(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action 1: Owner updates business settings, roles, members, or accounting balances
+                         (
+                           existing().ownerId == request.auth.uid &&
+                           incoming().memberRoles[existing().ownerId] == 'OWNER' &&
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'memberUids', 'memberRoles', 'maxMembers', 'businessName', 'businessRegNo',
+                             'businessType', 'businessAddress', 'ownerName', 'currency', 'financialYear',
+                             'closingStockByYear', 'beginningBalances', 'updatedAt'
+                           ])
+                         ) ||
+                         // Action 2: Accountant updates only closing stock or beginning balances (never settings or roles)
+                         (
+                           request.auth.uid in existing().memberUids &&
+                           existing().memberRoles[request.auth.uid] == 'ACCOUNTANT' &&
+                           isLicenceActive(businessId) &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['closingStockByYear', 'beginningBalances', 'updatedAt'])
+                         ) ||
+                         // Action 3: Invitee redeems a single-use unexpired invite code atomically
+                         (
+                           !(request.auth.uid in existing().memberUids) &&
+                           request.auth.uid in incoming().memberUids &&
+                           incoming().memberUids.hasAll(existing().memberUids) &&
+                           incoming().memberUids.size() == existing().memberUids.size() + 1 &&
+                           'lastInviteCode' in incoming() &&
+                           isValidId(incoming().lastInviteCode) &&
+                           exists(/databases/$(database)/documents/invites/$(incoming().lastInviteCode)) &&
+                           get(/databases/$(database)/documents/invites/$(incoming().lastInviteCode)).data.businessId == businessId &&
+                           !('redeemedByUid' in get(/databases/$(database)/documents/invites/$(incoming().lastInviteCode)).data) &&
+                           get(/databases/$(database)/documents/invites/$(incoming().lastInviteCode)).data.expiresAt > request.time &&
+                           getAfter(/databases/$(database)/documents/invites/$(incoming().lastInviteCode)).data.redeemedByUid == request.auth.uid &&
+                           incoming().memberRoles[request.auth.uid] == get(/databases/$(database)/documents/invites/$(incoming().lastInviteCode)).data.role &&
+                           incoming().memberRoles[request.auth.uid] in ['ACCOUNTANT', 'STAFF'] &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'memberRoles', 'lastInviteCode', 'updatedAt'])
+                         )
+                       );
+
+      allow delete: if isSignedIn() && isValidId(businessId) && existing().ownerId == request.auth.uid;
+
+      // Owner-only private PII subdocument (IC number, personal phone/email)
+      match /private/ownerInfo {
+        allow get: if isValidId(businessId) && isBusinessOwner(businessId);
+
+        allow create: if isValidId(businessId) &&
+                         isBusinessOwner(businessId) &&
+                         incoming().keys().hasAll(['ownerId', 'ownerIdNumber', 'ownerPhone', 'ownerEmail', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['ownerId', 'ownerIdNumber', 'ownerPhone', 'ownerEmail', 'createdAt', 'updatedAt']) &&
+                         isValidOwnerPrivateInfo(incoming(), request.auth.uid);
+
+        allow update: if isValidId(businessId) &&
+                         isBusinessOwner(businessId) &&
+                         isValidOwnerPrivateInfo(incoming(), existing().ownerId) &&
+                         incoming().ownerId == existing().ownerId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['ownerIdNumber', 'ownerPhone', 'ownerEmail', 'updatedAt']);
+
+        allow delete: if isValidId(businessId) && isBusinessOwner(businessId);
+      }
+
+      match /transactions/{txId} {
+        // List query MUST filter with .whereArrayContains("memberUids", uid) (no get() inside allow list)
+        allow list: if isSignedIn() && request.auth.uid in existing().memberUids;
+
+        // Single-doc get verifies active parent membership for instant revocation
+        allow get: if isValidId(businessId) && isValidId(txId) && isBusinessMember(businessId);
+
+        allow create: if isValidId(businessId) &&
+                         isValidId(txId) &&
+                         isBusinessMember(businessId) &&
+                         isLicenceActive(businessId) &&
+                         incoming().createdByUid == request.auth.uid &&
+                         incoming().memberUids == businessDoc(businessId).memberUids &&
+                         incoming().keys().hasAll(['businessId', 'createdByUid', 'memberUids', 'date', 'type', 'categoryId', 'method', 'amount', 'note', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['businessId', 'createdByUid', 'memberUids', 'date', 'type', 'categoryId', 'method', 'amount', 'note', 'partyName', 'invoiceNo', 'disposalAssetType', 'disposalAssetCost', 'createdAt', 'updatedAt']) &&
+                         isValidBookkeepingTransaction(incoming(), businessId);
+
+        allow update: if isValidId(businessId) &&
+                         isValidId(txId) &&
+                         isBusinessMember(businessId) &&
+                         isLicenceActive(businessId) &&
+                         isValidBookkeepingTransaction(incoming(), businessId) &&
+                         incoming().businessId == existing().businessId &&
+                         incoming().createdByUid == existing().createdByUid &&
+                         incoming().createdAt == existing().createdAt &&
+                         (
+                           // Action 1: Active member edits transaction details (cannot tamper businessId, createdByUid, or memberUids)
+                           incoming().diff(existing()).affectedKeys().hasOnly([
+                             'date', 'type', 'categoryId', 'method', 'amount', 'note',
+                             'partyName', 'invoiceNo', 'disposalAssetType', 'disposalAssetCost', 'updatedAt'
+                           ]) ||
+                           // Action 2: Owner syncs memberUids after adding/removing team members
+                           (
+                             isBusinessOwner(businessId) &&
+                             incoming().memberUids == businessDoc(businessId).memberUids &&
+                             incoming().diff(existing()).affectedKeys().hasOnly(['memberUids', 'updatedAt'])
+                           )
+                         );
+
+        allow delete: if isValidId(businessId) &&
+                         isValidId(txId) &&
+                         isBusinessMember(businessId) &&
+                         isLicenceActive(businessId) &&
+                         (isOwnerOrAccountant(businessId) || existing().createdByUid == request.auth.uid);
+      }
+    }
+
+    match /invites/{inviteCode} {
+      // Prevent enumeration: allow list is forbidden; users must know the exact high-entropy code.
+      allow get: if isSignedIn() && isValidId(inviteCode) && inviteCode.size() >= 16;
+
+      allow create: if isSignedIn() &&
+                       isValidId(inviteCode) &&
+                       inviteCode.size() >= 16 &&
+                       isValidTeamInvite(incoming()) &&
+                       isBusinessOwner(incoming().businessId) &&
+                       incoming().createdByUid == request.auth.uid &&
+                       !('redeemedByUid' in incoming()) &&
+                       incoming().expiresAt > request.time &&
+                       incoming().expiresAt <= request.time + duration.value(7, 'd') &&
+                       incoming().keys().hasAll(['businessId', 'businessName', 'role', 'createdByUid', 'expiresAt', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['businessId', 'businessName', 'role', 'createdByUid', 'expiresAt', 'createdAt', 'updatedAt']);
+
+      allow update: if isSignedIn() &&
+                       isValidId(inviteCode) &&
+                       isValidTeamInvite(incoming()) &&
+                       incoming().businessId == existing().businessId &&
+                       incoming().businessName == existing().businessName &&
+                       incoming().role == existing().role &&
+                       incoming().createdByUid == existing().createdByUid &&
+                       incoming().expiresAt == existing().expiresAt &&
+                       incoming().createdAt == existing().createdAt &&
+                       !('redeemedByUid' in existing()) &&
+                       existing().expiresAt > request.time &&
+                       incoming().redeemedByUid == request.auth.uid &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['redeemedByUid', 'updatedAt']) &&
+                       request.auth.uid in getAfter(/databases/$(database)/documents/businesses/$(existing().businessId)).data.memberUids;
+
+      allow delete: if isSignedIn() && isValidId(inviteCode) && isBusinessOwner(existing().businessId);
+    }
+
+    // Server-only Master Licence Registry (accessed exclusively by Firebase Admin SDK / Cloud Functions)
+    match /masterLicences/{licenceKey} {
+      allow read, write: if false;
+    }
+  }
+}

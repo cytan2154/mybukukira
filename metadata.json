@@ -1,0 +1,6 @@
+{
+  "name": "BukuKira",
+  "description": "SME bookkeeping, cash and bank tracking, credit records, and financial statements with Firebase sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
