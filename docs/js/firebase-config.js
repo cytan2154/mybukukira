@@ -2,15 +2,23 @@
  * Firebase Web App Configuration for BukuKira.
  * Connects directly to the same Firebase project and named Firestore database as the Android app.
  *
- * SETUP:
- * 1. Open Firebase Console -> Project "gen-lang-client-0697977355" -> Project Settings -> Your apps -> Add app -> Web (</>).
- * 2. Replace `appId` (and `apiKey` if Firebase Console shows a separate Web key) below,
- *    OR enter your Web App config once inside the PWA setup screen on first launch.
- * 3. Add your hosting domain (e.g. `<username>.github.io` or `gen-lang-client-0697977355.web.app`)
- *    under Firebase Console -> Authentication -> Settings -> Authorized domains.
+ * SETUP (One-Time Security Step):
+ * 1. Open Google Cloud Console -> Project "gen-lang-client-0697977355" -> APIs & Services -> Credentials.
+ * 2. Click "+ Create Credentials" -> "API key" to create a SEPARATE Web-only key
+ *    (do NOT add Website restrictions to your Android key in google-services.json).
+ * 3. Under Application restrictions -> select "Websites" and allow ONLY your hosting domain:
+ *      - GitHub Pages:     https://<your-username>.github.io/*
+ *      - Firebase Hosting: https://gen-lang-client-0697977355.web.app/*
+ *                          https://gen-lang-client-0697977355.firebaseapp.com/*
+ * 4. Under API restrictions -> "Restrict key" -> select ONLY:
+ *      - Identity Toolkit API
+ *      - Token Service API
+ *      - Cloud Firestore API
+ * 5. Replace REPLACE_WITH_DOMAIN_RESTRICTED_WEB_API_KEY below with that restricted key,
+ *    and add your hosting domain under Firebase Console -> Authentication -> Settings -> Authorized domains.
  */
 export const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: 'REPLACE_WITH_DOMAIN_RESTRICTED_WEB_API_KEY',
+  apiKey: 'AIzaSyBR-Hyqi-bclxHlnMfqQUadoEWRY8aSjEw',
   authDomain: 'gen-lang-client-0697977355.firebaseapp.com',
   projectId: 'gen-lang-client-0697977355',
   storageBucket: 'gen-lang-client-0697977355.firebasestorage.app',
