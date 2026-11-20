@@ -197,36 +197,6 @@ test('Owner creates TRIAL licence and business atomically via WriteBatch; PRO/31
   await assertSucceeds(batch.commit());
 });
 
-test('Server-only masterLicences collection rejects all client reads and writes', async () => {
-  await testEnv.withSecurityRulesDisabled(async (ctx) => {
-    await ctx.firestore().collection('masterLicences').doc('BK-PRO-MASTER-01').set({
-      licenceKey: 'BK-PRO-MASTER-01',
-      plan: 'PRO',
-      status: 'ACTIVE',
-      durationDays: 365,
-      expiryDate: futureDate(365),
-      maxDevices: 5,
-      maxClaims: 1,
-      claimCount: 0,
-      claimedByBusinessIds: [],
-      createdAt: pastDate(2000),
-      updatedAt: pastDate(2000),
-    });
-  });
-
-  const ownerDb = ownerCtx('owner_1');
-  const anonDb = unauthCtx();
-
-  await assertFails(ownerDb.collection('masterLicences').doc('BK-PRO-MASTER-01').get());
-  await assertFails(ownerDb.collection('masterLicences').get());
-  await assertFails(ownerDb.collection('masterLicences').doc('BK-PRO-HACK').set({
-    licenceKey: 'BK-PRO-HACK',
-    plan: 'PRO',
-    status: 'ACTIVE',
-  }));
-  await assertFails(anonDb.collection('masterLicences').doc('BK-PRO-MASTER-01').get());
-});
-
 test('Owner PII private/ownerInfo is accessible only by business owner', async () => {
   await seedBusinessAndLicence('biz_pii', 'owner_1');
   const ownerDb = ownerCtx('owner_1');

@@ -386,13 +386,11 @@ fun LicenceAndDevicesSheet(
   language: LanguageCode,
   onDismiss: () -> Unit,
   onReverifyDevice: () -> Unit,
-  onRedeemMasterKey: (String) -> Unit,
   onRemoveDevice: (String) -> Unit
 ) {
   val strings = BukuKiraStrings.ui(language)
   val isOwner = workspace.ownerId == currentUid
   val dateFmt = remember { SimpleDateFormat("dd MMM yyyy", Locale.US) }
-  var masterKeyInput by remember(workspace.id) { mutableStateOf("") }
 
   ModalBottomSheet(onDismissRequest = onDismiss) {
     Column(
@@ -445,28 +443,11 @@ fun LicenceAndDevicesSheet(
         Text("Sahkan Semula Peranti & Lesen")
       }
 
-      Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text("Tebus / Naik Taraf Kunci Lesen Master", style = MaterialTheme.typography.titleSmall)
-          OutlinedTextField(
-            value = masterKeyInput,
-            onValueChange = { masterKeyInput = it },
-            label = { Text("Kunci Lesen PRO / ENTERPRISE") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().testTag("redeem_master_key_input")
-          )
-          Button(
-            onClick = {
-              onRedeemMasterKey(masterKeyInput.trim())
-              masterKeyInput = ""
-            },
-            enabled = masterKeyInput.trim().length >= 6,
-            modifier = Modifier.fillMaxWidth().testTag("redeem_master_key_button")
-          ) {
-            Text("Aktifkan Kunci Master")
-          }
-        }
-      }
+      Text(
+        text = "Untuk menaik taraf atau memperbaharui pelan PRO / ENTERPRISE, kongsi Business ID di atas dengan pentadbir BukuKira.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+      )
 
       Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Default.Devices, contentDescription = null, tint = MaterialTheme.colorScheme.primary)

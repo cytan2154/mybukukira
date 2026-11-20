@@ -358,75 +358,6 @@
         }
       },
       "required": ["businessId", "businessName", "role", "createdByUid", "expiresAt", "createdAt", "updatedAt"]
-    },
-    "MasterLicence": {
-      "title": "MasterLicence",
-      "description": "Server-only developer-issued master licence key registry managed via Cloud Functions / Admin SDK.",
-      "type": "object",
-      "properties": {
-        "licenceKey": {
-          "type": "string",
-          "description": "Unique commercial master licence key matching document ID."
-        },
-        "plan": {
-          "type": "string",
-          "enum": ["TRIAL", "PRO", "ENTERPRISE"],
-          "description": "Commercial plan tier granted upon redemption."
-        },
-        "status": {
-          "type": "string",
-          "enum": ["ACTIVE", "SUSPENDED", "EXPIRED"],
-          "description": "Operational state of the master key."
-        },
-        "durationDays": {
-          "type": "integer",
-          "description": "Validity duration in days applied on activation."
-        },
-        "expiryDate": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Absolute expiration timestamp for redeeming or running under this key."
-        },
-        "maxDevices": {
-          "type": "integer",
-          "description": "Maximum allowed registered devices for the upgraded workspace."
-        },
-        "maxMembers": {
-          "type": "integer",
-          "description": "Maximum allowed team members for the upgraded workspace."
-        },
-        "maxClaims": {
-          "type": "integer",
-          "description": "Maximum number of businesses allowed to redeem this key."
-        },
-        "claimCount": {
-          "type": "integer",
-          "description": "Number of businesses that have redeemed this key."
-        },
-        "claimedByBusinessIds": {
-          "type": "array",
-          "description": "Business IDs that have redeemed this master key."
-        },
-        "assignedEmail": {
-          "type": "string",
-          "description": "Optional buyer Google email restriction."
-        },
-        "issuedByUid": {
-          "type": "string",
-          "description": "Developer admin UID that issued this key."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Creation timestamp."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Last update timestamp."
-        }
-      },
-      "required": ["licenceKey", "plan", "status", "durationDays", "expiryDate", "maxDevices", "maxClaims", "claimCount", "claimedByBusinessIds", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -457,10 +388,6 @@
     "/invites/{inviteCode}": {
       "schema": { "$ref": "#/entities/TeamInvite" },
       "description": "Single-use expiring invite codes for team onboarding."
-    },
-    "/masterLicences/{licenceKey}": {
-      "schema": { "$ref": "#/entities/MasterLicence" },
-      "description": "Server-only master licence key registry locked from all client reads/writes."
     }
   }
 }

@@ -213,8 +213,8 @@ private fun AuthenticatedWorkspaceApp(
           defaultOwnerName = userDisplayName,
           isBusy = isBusy,
           errorMessage = feedback.second,
-          onCreateBusiness = { name, reg, type, addr, owner, cur, yr, plan, key, sample ->
-            vm.createBusiness(name, reg, type, addr, owner, cur, yr, plan, key, sample) {
+          onCreateBusiness = { name, reg, type, addr, owner, cur, yr, sample ->
+            vm.createBusiness(name, reg, type, addr, owner, cur, yr, sample) {
               showOnboardingOverlay = false
             }
           },
@@ -595,7 +595,6 @@ private fun AuthenticatedWorkspaceApp(
           language = current.language,
           onDismiss = { showLicenceSheet = false },
           onReverifyDevice = { vm.reverifyCurrentDevice(ws.id) },
-          onRedeemMasterKey = { key -> vm.activateMasterLicence(ws.id, key) },
           onRemoveDevice = { installId -> vm.removeDevice(ws.id, installId) }
         )
       }

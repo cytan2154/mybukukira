@@ -196,7 +196,7 @@ service cloud.firestore {
                     (existing().ownerId == request.auth.uid || request.auth.uid in existing().memberUids);
 
       // Client onboarding creates a validated TRIAL licence record bound to the owner's UID (max 30 days).
-      // Paid PRO / ENTERPRISE upgrades are written exclusively by Cloud Functions via masterLicences.
+      // Paid PRO / ENTERPRISE upgrades are applied by the developer via Firebase Console or Admin SDK (Spark-compatible).
       allow create: if isSignedIn() &&
                        isValidId(businessId) &&
                        incoming().ownerId == request.auth.uid &&
@@ -423,11 +423,6 @@ service cloud.firestore {
                        request.auth.uid in getAfter(/databases/$(database)/documents/businesses/$(existing().businessId)).data.memberUids;
 
       allow delete: if isSignedIn() && isValidId(inviteCode) && isBusinessOwner(existing().businessId);
-    }
-
-    // Server-only Master Licence Registry (accessed exclusively by Firebase Admin SDK / Cloud Functions)
-    match /masterLicences/{licenceKey} {
-      allow read, write: if false;
     }
   }
 }

@@ -179,14 +179,11 @@ class BukuKiraRepository(
     ownerName: String,
     currency: String,
     financialYear: String,
-    plan: LicencePlan,
-    customLicenceKey: String?,
     loadSampleData: Boolean
   ): Result<String> {
     val uid = runCatching { requireUid() }.getOrElse { return Result.failure(it) }
     val businessId = "biz_${UUID.randomUUID().toString().replace("-", "").take(16)}"
     val trialKey = "BK-TRIAL-${UUID.randomUUID().toString().replace("-", "").take(8).uppercase()}"
-    val masterKeyToRedeem = customLicenceKey?.trim()?.takeIf { it.length in 6..64 }
 
     val nowMs = System.currentTimeMillis()
     val startTs = Timestamp(Date(nowMs - 1000L))
@@ -254,20 +251,7 @@ class BukuKiraRepository(
         txBatch.commit().await()
       }
 
-      if (masterKeyToRedeem != null) {
-        val upgradeRes = authManager.activateMasterLicence(businessId, masterKeyToRedeem)
-        if (upgradeRes.isFailure) {
-          registerCurrentDevice(businessId)
-          return Result.failure(
-            IllegalStateException(
-              "30-day Trial created, but master licence key activation failed: " +
-                (upgradeRes.exceptionOrNull()?.localizedMessage ?: "Invalid key")
-            )
-          )
-        }
-      } else {
-        registerCurrentDevice(businessId)
-      }
+      registerCurrentDevice(businessId)
       Result.success(businessId)
     } catch (e: CancellationException) {
       throw e

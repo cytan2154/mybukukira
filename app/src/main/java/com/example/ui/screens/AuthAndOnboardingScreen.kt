@@ -60,7 +60,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.R
-import com.example.model.LicencePlan
 import com.example.ui.theme.EmeraldDark
 import com.example.ui.theme.EmeraldPrimary
 
@@ -232,8 +231,6 @@ fun WorkspaceOnboardingScreen(
     ownerName: String,
     currency: String,
     year: String,
-    plan: LicencePlan,
-    customKey: String?,
     loadSample: Boolean
   ) -> Unit,
   onJoinViaInvite: (String) -> Unit,
@@ -249,7 +246,6 @@ fun WorkspaceOnboardingScreen(
   var ownerName by remember(defaultOwnerName) { mutableStateOf(defaultOwnerName.ifBlank { "Pemilik Perniagaan" }) }
   var currency by remember { mutableStateOf("RM") }
   var year by remember { mutableStateOf("2026") }
-  var customKey by remember { mutableStateOf("") }
   var loadSample by remember { mutableStateOf(true) }
 
   var inviteCode by remember { mutableStateOf("") }
@@ -375,12 +371,10 @@ fun WorkspaceOnboardingScreen(
                   singleLine = true,
                   modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                  value = customKey,
-                  onValueChange = { customKey = it },
-                  label = { Text("Kunci Lesen Master (pilihan — kosongkan untuk Percubaan 30 hari)") },
-                  singleLine = true,
-                  modifier = Modifier.fillMaxWidth()
+                Text(
+                  text = "Setiap perniagaan baharu bermula dengan lesen Percubaan 30 hari (maksimum 5 peranti).",
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(
                   modifier = Modifier.fillMaxWidth(),
@@ -402,7 +396,7 @@ fun WorkspaceOnboardingScreen(
                   onClick = {
                     onCreateBusiness(
                       bizName, regNo, bizType, bizAddress, ownerName,
-                      currency, year, LicencePlan.TRIAL, customKey.ifBlank { null }, loadSample
+                      currency, year, loadSample
                     )
                   },
                   enabled = !isBusy && bizName.isNotBlank(),

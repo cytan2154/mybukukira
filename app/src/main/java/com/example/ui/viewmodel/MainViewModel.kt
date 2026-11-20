@@ -17,7 +17,6 @@ import com.example.model.BusinessLicence
 import com.example.model.BusinessWorkspace
 import com.example.model.FinancialStats
 import com.example.model.LanguageCode
-import com.example.model.LicencePlan
 import com.example.model.OwnerPrivateInfo
 import com.example.model.PaymentMethod
 import com.example.model.RegisteredDevice
@@ -320,8 +319,6 @@ class MainViewModel(
     ownerName: String,
     currency: String,
     financialYear: String,
-    plan: LicencePlan,
-    customLicenceKey: String?,
     loadSampleData: Boolean,
     onSuccess: () -> Unit = {}
   ) {
@@ -335,8 +332,6 @@ class MainViewModel(
         ownerName = ownerName,
         currency = currency,
         financialYear = financialYear,
-        plan = plan,
-        customLicenceKey = customLicenceKey,
         loadSampleData = loadSampleData
       ).onSuccess {
         yearOverrideFlow.value = null
@@ -359,20 +354,6 @@ class MainViewModel(
           onSuccess()
         }
         .onFailure { _feedback.value = null to (it.localizedMessage ?: "Activation failed.") }
-      _isBusy.value = false
-    }
-  }
-
-  fun activateMasterLicence(businessId: String, masterLicenceKey: String, onSuccess: () -> Unit = {}) {
-    viewModelScope.launch {
-      _isBusy.value = true
-      authManager.activateMasterLicence(businessId, masterLicenceKey)
-        .onSuccess {
-          yearOverrideFlow.value = null
-          _feedback.value = "Master licence key redeemed! Plan upgraded to ${it.licence.plan.wireValue}." to null
-          onSuccess()
-        }
-        .onFailure { _feedback.value = null to (it.localizedMessage ?: "Master licence activation failed.") }
       _isBusy.value = false
     }
   }

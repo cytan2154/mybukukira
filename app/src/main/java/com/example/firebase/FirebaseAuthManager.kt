@@ -30,8 +30,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestoreSettings
 import com.google.firebase.firestore.persistentCacheSettings
-import com.google.firebase.functions.FirebaseFunctions
-import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.awaitClose
@@ -341,17 +339,6 @@ class FirebaseAuthManager(
         nowMillis = nowMillis
       )
       if (!validation.ok) {
-        if (validation.code == LegacyLicenseErrorCode.LICENCE_INVALID) {
-          // Key didn't match the existing workspace licence: attempt server-side Master Licence upgrade/redemption.
-          val masterResult = activateMasterLicence(businessId, licenceKey, nowMillis)
-          if (masterResult.isSuccess) return masterResult
-          return Result.failure(
-            masterResult.exceptionOrNull() ?: LicenseValidationException(
-              LegacyLicenseErrorCode.LICENCE_INVALID,
-              validation.message ?: "Licence validation failed."
-            )
-          )
-        }
         return Result.failure(
           LicenseValidationException(
             validation.code ?: LegacyLicenseErrorCode.LICENCE_INVALID,
@@ -388,116 +375,6 @@ class FirebaseAuthManager(
         LicenseValidationException(
           code,
           e.localizedMessage ?: "Failed to validate business licence."
-        )
-      )
-    }
-  }
-
-  /**
-   * Calls the trusted `activateMasterLicence` HTTPS Callable Cloud Function to redeem a
-   * developer-issued key from `masterLicences/{licenceKey}` and upgrade `licences/{businessId}`
-   * from TRIAL to PRO / ENTERPRISE, then registers the current device.
-   */
-  suspend fun activateMasterLicence(
-    businessIdInput: String,
-    licenceKeyInput: String,
-    nowMillis: Long = System.currentTimeMillis()
-  ): Result<BusinessAccessStatus.Granted> {
-    val user = currentUser
-      ?: return Result.failure(
-        LicenseValidationException(
-          LegacyLicenseErrorCode.AUTH_REQUIRED,
-          "Google Sign-In is required before activating a master licence key."
-        )
-      )
-
-    val businessId = businessIdInput.trim()
-    val licenceKey = licenceKeyInput.trim()
-    if (!BUSINESS_ID_REGEX.matches(businessId) || licenceKey.length < 6) {
-      return Result.failure(
-        LicenseValidationException(
-          LegacyLicenseErrorCode.LICENCE_REQUIRED,
-          "Valid Business ID and Master Licence Key are required."
-        )
-      )
-    }
-
-    return try {
-      FirebaseFunctions.getInstance()
-        .getHttpsCallable("activateMasterLicence")
-        .call(hashMapOf("businessId" to businessId, "licenceKey" to licenceKey))
-        .await()
-
-      val installId = getOrCreateInstallationId(user.uid)
-      val updatedSnap = db.collection("licences").document(businessId).get().await()
-      val updatedLicence = snapToLicence(updatedSnap)
-        ?: return Result.failure(
-          LicenseValidationException(
-            LegacyLicenseErrorCode.LICENCE_INVALID,
-            "Master licence activated but workspace licence could not be loaded."
-          )
-        )
-
-      val devicesSnap = db.collection("licences").document(businessId)
-        .collection("devices").get().await()
-      val devices = devicesSnap.documents.mapNotNull { snapToDevice(it) }
-
-      val validation = validateLegacyLicenseRecord(
-        businessId = businessId,
-        licenceKeyInput = updatedLicence.licenceKey,
-        installationId = installId,
-        licence = updatedLicence,
-        registeredDevices = devices,
-        nowMillis = nowMillis
-      )
-      if (!validation.ok) {
-        return Result.failure(
-          LicenseValidationException(
-            validation.code ?: LegacyLicenseErrorCode.LICENCE_INVALID,
-            validation.message ?: "Upgraded licence validation failed."
-          )
-        )
-      }
-
-      upsertDeviceDoc(businessId, installId, user.uid, devices.any { it.installationId == installId })
-      db.collection("users").document(user.uid).update(
-        mapOf(
-          "activeBusinessId" to businessId,
-          "updatedAt" to FieldValue.serverTimestamp()
-        )
-      ).await()
-      recordLocalValidation(user.uid, businessId, updatedLicence.licenceKey, nowMillis)
-
-      Result.success(
-        BusinessAccessStatus.Granted(
-          uid = user.uid,
-          businessId = businessId,
-          licence = updatedLicence,
-          installationId = installId
-        )
-      )
-    } catch (e: CancellationException) {
-      throw e
-    } catch (e: FirebaseFunctionsException) {
-      val mappedCode = when (e.code) {
-        FirebaseFunctionsException.Code.UNAUTHENTICATED -> LegacyLicenseErrorCode.AUTH_REQUIRED
-        FirebaseFunctionsException.Code.PERMISSION_DENIED -> LegacyLicenseErrorCode.MEMBERSHIP_REQUIRED
-        FirebaseFunctionsException.Code.RESOURCE_EXHAUSTED -> LegacyLicenseErrorCode.MAX_DEVICES_REACHED
-        FirebaseFunctionsException.Code.FAILED_PRECONDITION -> LegacyLicenseErrorCode.LICENCE_INACTIVE
-        FirebaseFunctionsException.Code.NOT_FOUND -> LegacyLicenseErrorCode.LICENCE_INVALID
-        else -> LegacyLicenseErrorCode.PERMISSION_OR_NETWORK_ERROR
-      }
-      Result.failure(
-        LicenseValidationException(
-          mappedCode,
-          e.message ?: "Master licence activation failed."
-        )
-      )
-    } catch (e: Exception) {
-      Result.failure(
-        LicenseValidationException(
-          LegacyLicenseErrorCode.PERMISSION_OR_NETWORK_ERROR,
-          e.localizedMessage ?: "Master licence activation failed."
         )
       )
     }
