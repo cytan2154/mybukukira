@@ -21,32 +21,8 @@ export const DEFAULT_FIREBASE_CONFIG = {
 export const FIRESTORE_DATABASE_ID =
   'ai-studio-android-bukukira-4cf4342e-65eb-431d-b64e-10c2cb4d2180';
 
-const OVERRIDE_STORAGE_KEY = 'bukukira_web_firebase_config_override';
-
 export function getActiveFirebaseConfig() {
-  try {
-    const raw = localStorage.getItem(OVERRIDE_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.apiKey && parsed.projectId && parsed.appId) {
-        return {
-          ...DEFAULT_FIREBASE_CONFIG,
-          ...parsed
-        };
-      }
-    }
-  } catch {
-    // Ignore malformed override
-  }
   return DEFAULT_FIREBASE_CONFIG;
-}
-
-export function saveFirebaseConfigOverride(cfg) {
-  localStorage.setItem(OVERRIDE_STORAGE_KEY, JSON.stringify(cfg));
-}
-
-export function clearFirebaseConfigOverride() {
-  localStorage.removeItem(OVERRIDE_STORAGE_KEY);
 }
 
 export function isFirebaseWebConfigured(cfg = getActiveFirebaseConfig()) {

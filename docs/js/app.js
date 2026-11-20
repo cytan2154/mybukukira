@@ -1,12 +1,4 @@
 import {
-  DEFAULT_FIREBASE_CONFIG,
-  FIRESTORE_DATABASE_ID,
-  clearFirebaseConfigOverride,
-  getActiveFirebaseConfig,
-  isFirebaseWebConfigured,
-  saveFirebaseConfigOverride
-} from './firebase-config.js';
-import {
   CREDIT_PURCHASE_OPTIONS,
   IN_CATEGORIES,
   OUT_CATEGORIES,
@@ -42,7 +34,6 @@ const ICONS = {
 
 const state = {
   configReady: false,
-  showConfigModal: false,
   initializing: true,
   authLoading: false,
   user: null,
@@ -335,66 +326,15 @@ function renderPwaInstallBanner() {
   return '';
 }
 
-function renderFirebaseSetupScreen(asModal = false) {
-  const cfg = getActiveFirebaseConfig();
-  const body = `
-    <div style="font-size:13.5px;color:var(--text-muted);">
-      Sambungkan Web/PWA ini ke projek Firebase BukuKira anda (<code>${escapeHtml(cfg.projectId)}</code>).
-      Daftar aplikasi Web di <strong>Firebase Console &rarr; Project Settings &rarr; Add app (Web)</strong>, kemudian tampal konfigurasi JSON atau <code>appId</code> di bawah.
-    </div>
-    <form id="firebase-config-form" style="display:flex;flex-direction:column;gap:10px;">
-      <div class="field">
-        <label>Tampal Objek firebaseConfig JSON (pilihan pantas)</label>
-        <textarea class="textarea" id="cfg-json-paste" placeholder='{"apiKey":"...","authDomain":"...","projectId":"gen-lang-client-0697977355","appId":"1:872650444986:web:..."}'></textarea>
-      </div>
-      <div class="field">
-        <label>Firebase Web App ID (appId) *</label>
-        <input class="input" id="cfg-app-id" value="${escapeHtml(isFirebaseWebConfigured(cfg) ? cfg.appId : '')}" placeholder="1:872650444986:web:..." required />
-      </div>
-      <div class="field">
-        <label>Web API Key (apiKey) *</label>
-        <input class="input" id="cfg-api-key" value="${escapeHtml(cfg.apiKey || '')}" required />
-      </div>
-      <div class="field">
-        <label>Auth Domain</label>
-        <input class="input" id="cfg-auth-domain" value="${escapeHtml(cfg.authDomain || DEFAULT_FIREBASE_CONFIG.authDomain)}" required />
-      </div>
-      <div style="display:flex;gap:10px;margin-top:4px;">
-        ${asModal ? `<button type="button" class="btn btn-outline" style="flex:1;" data-action="close-config-modal">Batal</button>` : ''}
-        <button type="submit" class="btn btn-primary" style="flex:1.5;">Simpan & Sambung</button>
-      </div>
-      ${
-        localStorage.getItem('bukukira_web_firebase_config_override')
-          ? `<button type="button" class="btn btn-outline btn-sm" data-action="reset-firebase-config">Reset Tetapan Tempatan</button>`
-          : ''
-      }
-    </form>
-  `;
-
-  if (asModal) {
-    return `
-      <div class="modal-backdrop">
-        <div class="modal-sheet">
-          <div class="modal-header">
-            <div class="modal-title">Tetapan Firebase Web App</div>
-            <button class="icon-btn" data-action="close-config-modal" aria-label="Close">${ICONS.close}</button>
-          </div>
-          <div class="modal-body">${body}</div>
-        </div>
-      </div>
-    `;
-  }
-
+function renderUnavailableScreen() {
   return `
     <div class="auth-wrap">
-      <div class="card auth-card">
-        <div class="center-hero">
-          <img src="./icons/icon-192.png" alt="BukuKira" />
-          <h2 style="margin:4px 0 0;">BukuKira Web &amp; PWA</h2>
-          <div class="text-muted" style="font-size:13px;">Langkah 1: Konfigurasi Firebase Web SDK</div>
+      <div class="card auth-card center-hero">
+        <img src="./icons/icon-192.png" alt="BukuKira" />
+        <h2 style="margin:4px 0 0;">BukuKira</h2>
+        <div class="banner banner-error" style="width:100%;justify-content:center;">
+          <span>Aplikasi web belum sedia. Sila hubungi pentadbir sistem.</span>
         </div>
-        ${renderPwaInstallBanner()}
-        ${body}
       </div>
     </div>
   `;
@@ -422,12 +362,6 @@ function renderAuthScreen() {
         <button class="btn btn-outline btn-full btn-sm" data-action="google-signin-redirect" ${state.authLoading ? 'disabled' : ''}>
           Guna Redirect Sign-In (jika popup disekat di iPhone/Safari)
         </button>
-
-        <div class="divider"></div>
-        <div class="row-between" style="font-size:12px;color:var(--text-muted);">
-          <span>DB: ${escapeHtml(FIRESTORE_DATABASE_ID.slice(0, 24))}...</span>
-          <button class="btn btn-ghost btn-sm" data-action="open-config-modal">Konfigurasi Web</button>
-        </div>
       </div>
     </div>
   `;
@@ -1414,14 +1348,14 @@ function render() {
   }
 
   if (!state.configReady) {
-    appEl.innerHTML = renderFirebaseSetupScreen(false);
+    appEl.innerHTML = renderUnavailableScreen();
     modalRoot.innerHTML = '';
     return;
   }
 
   if (!state.user) {
     appEl.innerHTML = renderAuthScreen();
-    modalRoot.innerHTML = state.showConfigModal ? renderFirebaseSetupScreen(true) : '';
+    modalRoot.innerHTML = '';
     return;
   }
 
@@ -1447,14 +1381,9 @@ function render() {
 document.addEventListener('click', async (e) => {
   const target = e.target.closest('[data-action]');
   if (!target) {
-    if (e.target.classList.contains('modal-backdrop')) {
-      if (state.showConfigModal) {
-        state.showConfigModal = false;
-        render();
-      } else if (state.modal) {
-        state.modal = null;
-        render();
-      }
+    if (e.target.classList.contains('modal-backdrop') && state.modal) {
+      state.modal = null;
+      render();
     }
     return;
   }
@@ -1471,19 +1400,6 @@ document.addEventListener('click', async (e) => {
       case 'close-modal':
         state.modal = null;
         render();
-        break;
-      case 'open-config-modal':
-        state.showConfigModal = true;
-        render();
-        break;
-      case 'close-config-modal':
-        state.showConfigModal = false;
-        render();
-        break;
-      case 'reset-firebase-config':
-        clearFirebaseConfigOverride();
-        state.showConfigModal = false;
-        await bootApp();
         break;
       case 'trigger-pwa-install':
         if (state.deferredInstallPrompt) {
@@ -1760,15 +1676,6 @@ document.addEventListener('input', (e) => {
       restored.focus();
       if (cursorPos != null) restored.setSelectionRange(cursorPos, cursorPos);
     }
-  } else if (e.target.id === 'cfg-json-paste') {
-    try {
-      const parsed = JSON.parse(e.target.value);
-      if (parsed.appId) document.getElementById('cfg-app-id').value = parsed.appId;
-      if (parsed.apiKey) document.getElementById('cfg-api-key').value = parsed.apiKey;
-      if (parsed.authDomain) document.getElementById('cfg-auth-domain').value = parsed.authDomain;
-    } catch {
-      // Ignore partial JSON while typing
-    }
   }
 });
 
@@ -1797,18 +1704,7 @@ document.addEventListener('change', async (e) => {
 document.addEventListener('submit', async (e) => {
   e.preventDefault();
   try {
-    if (e.target.id === 'firebase-config-form') {
-      const cfg = {
-        ...DEFAULT_FIREBASE_CONFIG,
-        apiKey: document.getElementById('cfg-api-key').value.trim(),
-        authDomain: document.getElementById('cfg-auth-domain').value.trim(),
-        appId: document.getElementById('cfg-app-id').value.trim()
-      };
-      saveFirebaseConfigOverride(cfg);
-      state.showConfigModal = false;
-      await bootApp();
-      showToast('Konfigurasi Firebase Web disimpan');
-    } else if (e.target.id === 'onboard-create-form') {
+    if (e.target.id === 'onboard-create-form') {
       await repo.createBusinessWorkspace(state.user.uid, {
         businessName: document.getElementById('ob-biz-name').value,
         businessRegNo: document.getElementById('ob-reg-no').value,
