@@ -754,6 +754,210 @@ button {
   gap: 12px;
 }
 
+/* Record Entry Modal (Frozen Top Save + Classified Category Cards) */
+.modal-header-frozen {
+  padding: 14px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.modal-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tx-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tx-title-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.tx-title-badge.in {
+  background: var(--emerald-soft);
+  color: var(--emerald);
+}
+
+.tx-title-badge.out {
+  background: var(--coral-soft);
+  color: var(--coral);
+}
+
+.save-frozen-btn {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.amount-hero-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--emerald-bright);
+  background: var(--surface);
+}
+
+.amount-hero-box.out {
+  border-color: var(--coral);
+}
+
+.amount-hero-prefix {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.amount-hero-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pay-method-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pay-method-card {
+  min-height: 50px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.pay-method-card.active {
+  border-color: var(--emerald-bright);
+  background: var(--emerald-soft);
+  color: var(--text);
+}
+
+.pay-method-card.active.out {
+  border-color: var(--coral);
+  background: var(--coral-soft);
+}
+
+.cat-group-header {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  padding: 10px 0 6px;
+  border-bottom: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.cat-group-header.out {
+  color: var(--coral);
+}
+
+.cat-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 420px) {
+  .cat-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cat-card {
+  text-align: left;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.cat-card.active {
+  border-color: var(--emerald-bright);
+  background: var(--emerald-soft);
+}
+
+.cat-card.active.out {
+  border-color: var(--coral);
+  background: var(--coral-soft);
+}
+
+.cat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.cat-card.active .cat-icon {
+  background: #FFFFFF;
+  color: var(--emerald);
+}
+
+.cat-card.active.out .cat-icon {
+  background: #FFFFFF;
+  color: var(--coral);
+}
+
+.cat-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.cat-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  line-height: 1.3;
+}
+
 /* Toast Notification */
 .toast {
   position: fixed;

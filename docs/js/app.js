@@ -2,7 +2,8 @@ import {
   CREDIT_PURCHASE_OPTIONS,
   IN_CATEGORIES,
   OUT_CATEGORIES,
-  localizedCategoryLabel
+  localizedCategoryLabel,
+  localizedCategorySub
 } from './accounting-catalog.js';
 import { formatCurrency, formatNumber, uiStrings } from './strings.js';
 import { computeStatements, defaultBeginningBalances, getClosingStock } from './accounting-engine.js';
@@ -29,8 +30,198 @@ const ICONS = {
   settings: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>`,
   trash: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
   copy: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`,
-  close: `<svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`
+  close: `<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`,
+  cash: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M2 6h20v12H2V6zm10 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-8 1v4c1.1 0 2-.9 2-2s-.9-2-2-2zm16 0c-1.1 0-2 .9-2 2s.9 2 2 2v-4z"/></svg>`,
+  bank: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M4 10v7h3v-7H4zm6 0v7h3v-7h-3zM2 22h19v-3H2v3zm14-12v7h3v-7h-3zm-4.5-9L2 6v2h19V6l-9.5-5z"/></svg>`,
+  register: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>`,
+  percent: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M7.5 11A3.5 3.5 0 1 0 7.5 4a3.5 3.5 0 0 0 0 7zm0-5A1.5 1.5 0 1 1 7.5 9 1.5 1.5 0 0 1 7.5 6zm9 7a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zm0 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM5.41 20 18.59 4 20 5.41 6.82 20z"/></svg>`,
+  coins: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.31 0 6 1.12 6 2s-2.69 2-6 2-6-1.12-6-2 2.69-2 6-2zm0 14c-3.31 0-6-1.12-6-2v-2.23c1.49.76 3.63 1.23 6 1.23s4.51-.47 6-1.23V17c0 .88-2.69 2-6 2zm0-5c-3.31 0-6-1.12-6-2V9.77C7.49 10.53 9.63 11 12 11s4.51-.47 6-1.23V12c0 .88-2.69 2-6 2z"/></svg>`,
+  transfer: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>`,
+  box: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8zm-9-2.85L18.17 8 12 11.43 5.83 8 12 5.15zM5 9.81l6 3.33v5.72l-6-3.33V9.81zm8 9.05v-5.72l6-3.33v5.72l-6 3.33z"/></svg>`,
+  undo: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>`,
+  asset: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>`,
+  wallet: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M21 18v1c0 1.1-.9 2-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14c1.1 0 2 .9 2 2v1h-9a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>`,
+  receipt: `<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19.5 3.5 18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19.09H5V4.91h14v14.18zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z"/></svg>`
 };
+
+function categoryIconSvg(catId) {
+  if (catId === 'sales_goods') return ICONS.register;
+  if (catId === 'other_income_dividend' || catId === 'loan_received' || catId === 'loan_repay') return ICONS.coins;
+  if (catId === 'other_income_interest' || catId === 'exp_loan_interest' || catId === 'exp_commission') return ICONS.percent;
+  if (catId === 'other_income_rent_royalty' || catId === 'rent_utilities' || catId === 'buy_land_building') return ICONS.asset;
+  if (catId === 'transfer_bank_to_cash' || catId === 'transfer_cash_to_bank') return ICONS.transfer;
+  if (catId === 'purchase_return_refund' || catId === 'sales_return_refund' || catId === 'drawing_return') return ICONS.undo;
+  if (catId === 'buy_stock') return ICONS.box;
+  if (catId.startsWith('buy_') || catId === 'asset_disposal') return ICONS.asset;
+  if (catId === 'owner_capital' || catId === 'owner_drawing' || catId === 'debtors_payment' || catId === 'creditors_payment' || catId === 'other_creditors_payment') return ICONS.wallet;
+  return ICONS.receipt;
+}
+
+function txModalLabels(lang) {
+  if (lang === 'en') {
+    return {
+      recordInTitle: 'Record Money In (+)',
+      recordOutTitle: 'Record Money Out (-)',
+      saveRecord: 'Save Record',
+      amount: 'Amount',
+      paymentMethod: 'Payment Method',
+      cash: 'Cash',
+      bankQr: 'Bank / QR',
+      date: 'Date',
+      noteOptional: 'Note (Optional)',
+      notePlaceholderIn: 'e.g., Sales today',
+      notePlaceholderOut: 'e.g., Bought stock / paid rent',
+      selectRecordType: 'Select Record Type',
+      groups: {
+        other_income: 'OTHER INCOME',
+        special: 'SPECIAL, REFUNDS & RECEIVABLES',
+        capital_loans: 'CAPITAL & LOANS',
+        cogs: 'COST OF GOODS SOLD',
+        returns_transfers: 'RETURNS & TRANSFERS',
+        operating_expenses: 'OPERATING EXPENSES',
+        assets: 'ASSETS & DEPOSITS',
+        equity_loans: 'EQUITY, LOANS & PAYABLES'
+      }
+    };
+  }
+  if (lang === 'zh') {
+    return {
+      recordInTitle: '记录收款 (+)',
+      recordOutTitle: '记录付款 (-)',
+      saveRecord: '保存记录',
+      amount: '金额',
+      paymentMethod: '付款方式',
+      cash: '现金',
+      bankQr: '银行 / QR',
+      date: '日期',
+      noteOptional: '备注（可选）',
+      notePlaceholderIn: '例如：今日销售',
+      notePlaceholderOut: '例如：采购库存 / 付租金',
+      selectRecordType: '选择记录类型',
+      groups: {
+        other_income: '其他收入',
+        special: '特殊、退款与应收款',
+        capital_loans: '资本与贷款',
+        cogs: '销售成本（库存）',
+        returns_transfers: '退货与转账',
+        operating_expenses: '营业费用',
+        assets: '资产与押金',
+        equity_loans: '权益、贷款与应付款'
+      }
+    };
+  }
+  return {
+    recordInTitle: 'Rekod Duit Masuk (+)',
+    recordOutTitle: 'Rekod Duit Keluar (-)',
+    saveRecord: 'Simpan Rekod',
+    amount: 'Jumlah',
+    paymentMethod: 'Kaedah Bayaran',
+    cash: 'Tunai',
+    bankQr: 'Bank / QR',
+    date: 'Tarikh',
+    noteOptional: 'Nota (Pilihan)',
+    notePlaceholderIn: 'cth: Jualan hari ini',
+    notePlaceholderOut: 'cth: Beli stok / bayar sewa',
+    selectRecordType: 'Pilih Jenis Rekod',
+    groups: {
+      other_income: 'PENDAPATAN LAIN',
+      special: 'KHAS, PULANGAN & PENGHUTANG',
+      capital_loans: 'MODAL & PINJAMAN',
+      cogs: 'KOS JUALAN (STOK)',
+      returns_transfers: 'PULANGAN & PINDAHAN',
+      operating_expenses: 'PERBELANJAAN OPERASI',
+      assets: 'ASET & DEPOSIT',
+      equity_loans: 'EKUITI, PINJAMAN & PEMIUTANG'
+    }
+  };
+}
+
+function txCategoryGroups(txType, lang) {
+  const g = txModalLabels(lang).groups;
+  const byId = (ids, list) => ids.map((id) => list.find((c) => c.id === id)).filter(Boolean);
+  if (txType === 'IN') {
+    return [
+      { heading: null, items: byId(['sales_goods'], IN_CATEGORIES) },
+      {
+        heading: g.other_income,
+        items: byId(
+          ['other_income_dividend', 'other_income_interest', 'other_income_rent_royalty', 'other_income_general'],
+          IN_CATEGORIES
+        )
+      },
+      {
+        heading: g.special,
+        items: byId(
+          ['asset_disposal', 'purchase_return_refund', 'transfer_bank_to_cash', 'debtors_payment'],
+          IN_CATEGORIES
+        )
+      },
+      {
+        heading: g.capital_loans,
+        items: byId(['owner_capital', 'drawing_return', 'loan_received'], IN_CATEGORIES)
+      }
+    ].filter((sec) => sec.items.length > 0);
+  }
+  return [
+    { heading: g.cogs, items: byId(['buy_stock'], OUT_CATEGORIES) },
+    {
+      heading: g.returns_transfers,
+      items: byId(['sales_return_refund', 'transfer_cash_to_bank'], OUT_CATEGORIES)
+    },
+    {
+      heading: g.operating_expenses,
+      items: byId(
+        [
+          'exp_loan_interest',
+          'staff_wages',
+          'rent_utilities',
+          'exp_contract',
+          'exp_commission',
+          'exp_bad_debt',
+          'transport_fuel',
+          'exp_repair',
+          'exp_promo',
+          'exp_others'
+        ],
+        OUT_CATEGORIES
+      )
+    },
+    {
+      heading: g.assets,
+      items: byId(
+        [
+          'buy_land_building',
+          'buy_equipment',
+          'buy_vehicle',
+          'buy_other_noncurrent',
+          'buy_investment',
+          'advance_other_debtor',
+          'prepayment_other_current'
+        ],
+        OUT_CATEGORIES
+      )
+    },
+    {
+      heading: g.equity_loans,
+      items: byId(['owner_drawing', 'loan_repay', 'creditors_payment', 'other_creditors_payment'], OUT_CATEGORIES)
+    }
+  ].filter((sec) => sec.items.length > 0);
+}
+
+function syncTxModalDraftFromDom() {
+  if (!state.modal || state.modal.type !== 'tx') return;
+  const amtEl = document.getElementById('tx-amount');
+  const dateEl = document.getElementById('tx-date');
+  const noteEl = document.getElementById('tx-note');
+  const dispCostEl = document.getElementById('tx-disposal-cost');
+  state.modal = {
+    ...state.modal,
+    amount: amtEl ? amtEl.value : state.modal.amount,
+    date: dateEl ? dateEl.value : state.modal.date,
+    note: noteEl ? noteEl.value : state.modal.note,
+    disposalAssetCost: dispCostEl ? dispCostEl.value : state.modal.disposalAssetCost
+  };
+}
 
 const state = {
   configReady: false,
@@ -958,60 +1149,119 @@ function renderModal() {
 
   if (m.type === 'tx') {
     const txType = m.txType === 'OUT' ? 'OUT' : 'IN';
-    const cats = txType === 'IN' ? IN_CATEGORIES : OUT_CATEGORIES;
-    const catId = m.categoryId || cats[0].id;
+    const isOut = txType === 'OUT';
+    const ml = txModalLabels(lang);
+    const groups = txCategoryGroups(txType, lang);
+    const catId = m.categoryId || groups[0]?.items[0]?.id || IN_CATEGORIES[0].id;
     const method = m.method || 'CASH';
     const isDisposal = catId === 'asset_disposal';
     const disposalType = m.disposalAssetType || 'equipment';
-    title = txType === 'IN' ? s.addMoneyIn : s.addMoneyOut;
-    content = `
-      <div class="segmented">
-        <button type="button" class="segmented-btn ${txType === 'IN' ? 'active' : ''}" data-action="modal-tx-type" data-tx-type="IN">${escapeHtml(s.moneyIn)}</button>
-        <button type="button" class="segmented-btn ${txType === 'OUT' ? 'active' : ''}" data-action="modal-tx-type" data-tx-type="OUT">${escapeHtml(s.moneyOut)}</button>
-      </div>
-      <div class="chip-row">
-        <button type="button" class="chip ${method === 'CASH' ? 'active' : ''}" data-action="modal-tx-method" data-method="CASH">${escapeHtml(s.cashLabel)}</button>
-        <button type="button" class="chip ${method === 'BANK' ? 'active' : ''}" data-action="modal-tx-method" data-method="BANK">${escapeHtml(s.bankLabel)}</button>
-      </div>
-      <form id="tx-form" style="display:flex;flex-direction:column;gap:10px;">
-        <div class="grid-2">
-          <div class="field"><label>Jumlah (${escapeHtml(ws.currency)}) *</label><input class="input" id="tx-amount" type="number" step="0.01" min="0" value="${escapeHtml(m.amount || '')}" required /></div>
-          <div class="field"><label>Tarikh *</label><input class="input" id="tx-date" type="date" value="${escapeHtml(m.date || todayIso())}" required /></div>
-        </div>
-        <div class="field">
-          <label>Kategori</label>
-          <div class="chip-row">
-            ${cats
-              .map(
-                (c) =>
-                  `<button type="button" class="chip ${c.id === catId ? 'active' : ''}" data-action="modal-tx-cat" data-cat-id="${escapeHtml(c.id)}">${escapeHtml(localizedCategoryLabel(c.id, lang))}</button>`
-              )
-              .join('')}
+    title = isOut ? ml.recordOutTitle : ml.recordInTitle;
+
+    return `
+      <div class="modal-backdrop" data-action="backdrop-close">
+        <div class="modal-sheet">
+          <div class="modal-header-frozen">
+            <div class="modal-header-top">
+              <div class="tx-title-wrap">
+                <span class="tx-title-badge ${isOut ? 'out' : 'in'}">${isOut ? '&minus;' : '+'}</span>
+                <div class="modal-title">${escapeHtml(title)}</div>
+              </div>
+              <button type="button" class="icon-btn" data-action="close-modal" aria-label="Close" style="background:var(--bg);border-radius:50%;min-width:38px;min-height:38px;">${ICONS.close}</button>
+            </div>
+            <button type="submit" form="tx-form" class="btn ${isOut ? 'btn-coral' : 'btn-primary'} save-frozen-btn">
+              ${escapeHtml(ml.saveRecord)}
+            </button>
+          </div>
+          <div class="modal-body" data-modal-type="${escapeHtml(m.type)}">
+            <form id="tx-form" style="display:flex;flex-direction:column;gap:14px;">
+              <div class="segmented">
+                <button type="button" class="segmented-btn ${!isOut ? 'active' : ''}" data-action="modal-tx-type" data-tx-type="IN">${escapeHtml(s.moneyIn)} (+)</button>
+                <button type="button" class="segmented-btn ${isOut ? 'active' : ''}" style="${isOut ? 'color:var(--coral);' : ''}" data-action="modal-tx-type" data-tx-type="OUT">${escapeHtml(s.moneyOut)} (-)</button>
+              </div>
+
+              <div class="field">
+                <label>${escapeHtml(ml.amount)}</label>
+                <div class="amount-hero-box ${isOut ? 'out' : ''}">
+                  <span class="amount-hero-prefix">${escapeHtml(ws.currency)}</span>
+                  <input class="amount-hero-input" id="tx-amount" type="number" step="0.01" min="0" placeholder="0.00" value="${escapeHtml(m.amount || '')}" required />
+                </div>
+              </div>
+
+              <div class="field">
+                <label>${escapeHtml(ml.paymentMethod)}</label>
+                <div class="pay-method-grid">
+                  <button type="button" class="pay-method-card ${method === 'CASH' ? `active ${isOut ? 'out' : ''}` : ''}" data-action="modal-tx-method" data-method="CASH">
+                    ${ICONS.cash}<span>${escapeHtml(ml.cash)}</span>
+                  </button>
+                  <button type="button" class="pay-method-card ${method === 'BANK' ? `active ${isOut ? 'out' : ''}` : ''}" data-action="modal-tx-method" data-method="BANK">
+                    ${ICONS.bank}<span>${escapeHtml(ml.bankQr)}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="field">
+                  <label>${escapeHtml(ml.date)}</label>
+                  <input class="input" id="tx-date" type="date" value="${escapeHtml(m.date || todayIso())}" required />
+                </div>
+                <div class="field">
+                  <label>${escapeHtml(ml.noteOptional)}</label>
+                  <input class="input" id="tx-note" value="${escapeHtml(m.note || '')}" placeholder="${escapeHtml(isOut ? ml.notePlaceholderOut : ml.notePlaceholderIn)}" maxlength="500" />
+                </div>
+              </div>
+
+              ${
+                isDisposal
+                  ? `
+                <div class="card" style="background:var(--surface-alt);padding:12px;display:flex;flex-direction:column;gap:8px;">
+                  <div style="font-weight:700;font-size:13px;color:var(--emerald);">Maklumat Pelupusan Aset</div>
+                  <div class="chip-row">
+                    ${['equipment', 'landBuilding', 'vehicles', 'otherNonCurrent', 'investments']
+                      .map(
+                        (at) =>
+                          `<button type="button" class="chip ${at === disposalType ? 'active' : ''}" data-action="modal-disposal-type" data-asset-type="${at}">${at}</button>`
+                      )
+                      .join('')}
+                  </div>
+                  <div class="field">
+                    <label>Kos Asal Aset (${escapeHtml(ws.currency)}) *</label>
+                    <input class="input" id="tx-disposal-cost" type="number" step="0.01" min="0.01" value="${escapeHtml(m.disposalAssetCost || '')}" required />
+                  </div>
+                </div>
+              `
+                  : ''
+              }
+
+              <div class="field" style="gap:8px;">
+                <label style="font-size:13px;font-weight:700;color:var(--text);">${escapeHtml(ml.selectRecordType)}</label>
+                ${groups
+                  .map(
+                    (sec) => `
+                  ${sec.heading ? `<div class="cat-group-header ${isOut ? 'out' : ''}">${escapeHtml(sec.heading)}</div>` : ''}
+                  <div class="cat-card-grid">
+                    ${sec.items
+                      .map(
+                        (c) => `
+                      <button type="button" class="cat-card ${c.id === catId ? `active ${isOut ? 'out' : ''}` : ''}" data-action="modal-tx-cat" data-cat-id="${escapeHtml(c.id)}">
+                        <span class="cat-icon">${categoryIconSvg(c.id)}</span>
+                        <div style="min-width:0;">
+                          <div class="cat-title">${escapeHtml(localizedCategoryLabel(c.id, lang))}</div>
+                          <div class="cat-desc">${escapeHtml(localizedCategorySub(c.id, lang))}</div>
+                        </div>
+                      </button>
+                    `
+                      )
+                      .join('')}
+                  </div>
+                `
+                  )
+                  .join('')}
+              </div>
+            </form>
           </div>
         </div>
-        ${
-          isDisposal
-            ? `
-          <div class="divider"></div>
-          <div style="font-weight:700;font-size:13px;color:var(--emerald);">Maklumat Pelupusan Aset</div>
-          <div class="chip-row">
-            ${['equipment', 'landBuilding', 'vehicles', 'otherNonCurrent', 'investments']
-              .map(
-                (at) =>
-                  `<button type="button" class="chip ${at === disposalType ? 'active' : ''}" data-action="modal-disposal-type" data-asset-type="${at}">${at}</button>`
-              )
-              .join('')}
-          </div>
-          <div class="field"><label>Kos Asal Aset (${escapeHtml(ws.currency)}) *</label><input class="input" id="tx-disposal-cost" type="number" step="0.01" min="0.01" value="${escapeHtml(m.disposalAssetCost || '')}" required /></div>
-        `
-            : ''
-        }
-        <div class="field"><label>Nota / Butiran</label><input class="input" id="tx-note" value="${escapeHtml(m.note || '')}" maxlength="500" /></div>
-        <div class="grid-2" style="margin-top:6px;">
-          <button type="button" class="btn btn-outline" data-action="close-modal">${escapeHtml(s.cancel)}</button>
-          <button type="submit" class="btn ${txType === 'IN' ? 'btn-primary' : 'btn-coral'}">${escapeHtml(s.save)}</button>
-        </div>
-      </form>
+      </div>
     `;
   } else if (m.type === 'credit') {
     const txType = m.txType;
@@ -1320,7 +1570,7 @@ function renderModal() {
           <div class="modal-title">${escapeHtml(title)}</div>
           <button class="icon-btn" data-action="close-modal" aria-label="Close">${ICONS.close}</button>
         </div>
-        <div class="modal-body">${content}</div>
+        <div class="modal-body" data-modal-type="${escapeHtml(m.type)}">${content}</div>
       </div>
     </div>
   `;
@@ -1372,8 +1622,18 @@ function render() {
     return;
   }
 
+  const prevModalBody = modalRoot.querySelector('.modal-body');
+  const prevModalType = prevModalBody ? prevModalBody.getAttribute('data-modal-type') : null;
+  const prevModalScroll = prevModalBody ? prevModalBody.scrollTop : 0;
+
   appEl.innerHTML = renderWorkspaceShell();
   modalRoot.innerHTML = renderModal();
+  if (state.modal && prevModalType === state.modal.type && prevModalScroll > 0) {
+    const nextModalBody = modalRoot.querySelector('.modal-body');
+    if (nextModalBody) {
+      nextModalBody.scrollTop = prevModalScroll;
+    }
+  }
 }
 
 // ---- Event Delegation ----
@@ -1486,6 +1746,7 @@ document.addEventListener('click', async (e) => {
         render();
         break;
       case 'modal-tx-type': {
+        syncTxModalDraftFromDom();
         const nextType = target.getAttribute('data-tx-type') === 'OUT' ? 'OUT' : 'IN';
         state.modal = {
           ...state.modal,
@@ -1496,14 +1757,17 @@ document.addEventListener('click', async (e) => {
         break;
       }
       case 'modal-tx-method':
+        syncTxModalDraftFromDom();
         state.modal = { ...state.modal, method: target.getAttribute('data-method') || 'CASH' };
         render();
         break;
       case 'modal-tx-cat':
+        syncTxModalDraftFromDom();
         state.modal = { ...state.modal, categoryId: target.getAttribute('data-cat-id') };
         render();
         break;
       case 'modal-disposal-type':
+        syncTxModalDraftFromDom();
         state.modal = {
           ...state.modal,
           disposalAssetType: target.getAttribute('data-asset-type') || 'equipment'

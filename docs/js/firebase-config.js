@@ -10,7 +10,7 @@
  *    under Firebase Console -> Authentication -> Settings -> Authorized domains.
  */
 export const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyDk3aJaRMr4bTaduZzRG4HxvErvCRpmN_M',
+  apiKey: 'REPLACE_WITH_DOMAIN_RESTRICTED_WEB_API_KEY',
   authDomain: 'gen-lang-client-0697977355.firebaseapp.com',
   projectId: 'gen-lang-client-0697977355',
   storageBucket: 'gen-lang-client-0697977355.firebasestorage.app',
@@ -26,12 +26,18 @@ export function getActiveFirebaseConfig() {
 }
 
 export function isFirebaseWebConfigured(cfg = getActiveFirebaseConfig()) {
+  const key = String(cfg?.apiKey || '');
+  const appId = String(cfg?.appId || '');
   return Boolean(
     cfg &&
-      cfg.apiKey &&
+      key &&
       cfg.projectId &&
       cfg.authDomain &&
-      cfg.appId &&
-      !String(cfg.appId).startsWith('PASTE_')
+      appId &&
+      !key.startsWith('PASTE_') &&
+      !key.startsWith('REPLACE_') &&
+      !key.startsWith('YOUR_') &&
+      !appId.startsWith('PASTE_') &&
+      !appId.startsWith('REPLACE_')
   );
 }
