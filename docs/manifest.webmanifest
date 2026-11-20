@@ -1,0 +1,25 @@
+{
+  "name": "BukuKira — Cloud Bookkeeping",
+  "short_name": "BukuKira",
+  "description": "Offline-first SME bookkeeping, double-entry ledger, credit tracking, and financial statements synced with BukuKira Android.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#047857",
+  "background_color": "#F4F7F5",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

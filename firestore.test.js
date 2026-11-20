@@ -406,6 +406,19 @@ test('Device registration succeeds when licence active and validates hex install
     })
   );
 
+  const webInstallId = 'fedcba9876543210fedcba9876543210';
+  await assertSucceeds(
+    ownerDb.collection('licences').doc('biz_dev').collection('devices').doc(webInstallId).set({
+      installationId: webInstallId,
+      userId: 'owner_1',
+      deviceName: 'iPhone Safari PWA',
+      platform: 'WEB',
+      lastValidatedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    })
+  );
+
   await assertFails(
     ownerDb.collection('licences').doc('biz_dev').collection('devices').doc('bad_id').set({
       installationId: 'bad_id',

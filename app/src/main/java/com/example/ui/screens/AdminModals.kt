@@ -15,6 +15,8 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -390,6 +392,7 @@ fun LicenceAndDevicesSheet(
 ) {
   val strings = BukuKiraStrings.ui(language)
   val isOwner = workspace.ownerId == currentUid
+  val clipboard = LocalClipboardManager.current
   val dateFmt = remember { SimpleDateFormat("dd MMM yyyy", Locale.US) }
 
   ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -411,9 +414,33 @@ fun LicenceAndDevicesSheet(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
       ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-          Text("Business ID: ${workspace.id}", style = MaterialTheme.typography.bodySmall)
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Text("Business ID: ${workspace.id}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+            IconButton(
+              onClick = { clipboard.setText(AnnotatedString(workspace.id)) },
+              modifier = Modifier.testTag("copy_business_id_button")
+            ) {
+              Icon(Icons.Default.ContentCopy, contentDescription = "Copy Business ID")
+            }
+          }
           if (licence != null) {
-            Text("Licence Key: ${licence.licenceKey}", style = MaterialTheme.typography.titleSmall)
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+              Text("Licence Key: ${licence.licenceKey}", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+              IconButton(
+                onClick = { clipboard.setText(AnnotatedString(licence.licenceKey)) },
+                modifier = Modifier.testTag("copy_licence_key_button")
+              ) {
+                Icon(Icons.Default.ContentCopy, contentDescription = "Copy Licence Key")
+              }
+            }
             Text(
               "Plan: ${licence.plan.wireValue} • Status: ${licence.status.wireValue}",
               color = if (accessStatus.isGranted) EmeraldPrimary else CoralError,
@@ -444,7 +471,7 @@ fun LicenceAndDevicesSheet(
       }
 
       Text(
-        text = "Untuk menaik taraf atau memperbaharui pelan PRO / ENTERPRISE, kongsi Business ID di atas dengan pentadbir BukuKira.",
+        text = "Salin Business ID & Licence Key di atas untuk mengaktifkan peranti Android lain atau BukuKira Web/PWA (Safari/Chrome). Kongsi Business ID dengan pentadbir BukuKira untuk naik taraf PRO / ENTERPRISE.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
@@ -457,18 +484,29 @@ fun LicenceAndDevicesSheet(
 
       devices.forEach { dev ->
         val isCurrent = dev.installationId == currentInstallationId
+        val isWeb = dev.platform.equals("WEB", ignoreCase = true)
         Card(modifier = Modifier.fillMaxWidth()) {
           Row(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
+            Icon(
+              imageVector = if (isWeb) Icons.Default.Language else Icons.Default.Smartphone,
+              contentDescription = dev.platform,
+              tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
               Text(
                 text = dev.deviceName.ifBlank { dev.platform } + if (isCurrent) " (Peranti Ini)" else "",
                 style = MaterialTheme.typography.titleSmall
               )
-              Text("${dev.platform} • ${dev.installationId.take(12)}...", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+              Text(
+                "${if (isWeb) "WEB / PWA" else dev.platform} • ${dev.installationId.take(12)}...",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
             }
             if (isOwner || dev.userId == currentUid) {
               IconButton(onClick = { onRemoveDevice(dev.installationId) }) {

@@ -319,7 +319,7 @@ object ExportManager {
       val infoLine = buildString {
         if (workspace.businessRegNo.isNotBlank()) append(workspace.businessRegNo).append(" • ")
         if (workspace.ownerName.isNotBlank()) append(workspace.ownerName).append(" • ")
-        append("${labels.pnlTitle.take(0)}FY ${stats.selectedYear}")
+        append("FY ${stats.selectedYear}")
       }
       canvas.drawText(infoLine, marginX, y, subPaint)
       y += 14f

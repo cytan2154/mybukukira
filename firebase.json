@@ -5,6 +5,15 @@
       "rules": "firestore.rules"
     }
   ],
+  "hosting": {
+    "public": "docs",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/*.test.mjs"
+    ]
+  },
   "emulators": {
     "firestore": {
       "host": "127.0.0.1",
