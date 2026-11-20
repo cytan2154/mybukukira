@@ -15,7 +15,7 @@ export const DEFAULT_FIREBASE_CONFIG = {
   projectId: 'gen-lang-client-0697977355',
   storageBucket: 'gen-lang-client-0697977355.firebasestorage.app',
   messagingSenderId: '872650444986',
-  appId: 'PASTE_YOUR_FIREBASE_WEB_APP_ID'
+  appId: '1:872650444986:web:63b3fd9d10791600ed7283'
 };
 
 export const FIRESTORE_DATABASE_ID =
